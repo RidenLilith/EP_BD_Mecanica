@@ -1,14 +1,31 @@
-# backend/app.py
+# --- IMPORTS ESSENCIAIS (adicione no topo do app.py) ---
+import os, sys
+from datetime import datetime
+
+# garante que dá pra importar database.py / models.py quando rodar fora do Docker
+sys.path.append(os.path.dirname(__file__))
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from sqlalchemy import func, and_
+
 from database import Base, engine, SessionLocal
-from models import Item
+from models import (
+    Cliente, Veiculo, Funcionario, Servico, Peca,
+    OS, ItemPeca, ItemServico, Pagamento,
+    Agendamento, StatusAgendamento, StatusOS, OrigemPeca
+)
 
 app = Flask(__name__)
 CORS(app)
-
-# cria tabelas (em Postgres isso roda na inicialização do container do backend)
 Base.metadata.create_all(bind=engine)
+
+def db_sess():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def get_db():
     db = SessionLocal()
@@ -17,48 +34,161 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/api/itens")
-def listar_itens():
-    db = next(get_db())
-    itens = db.query(Item).all()
-    return jsonify([{"id": i.id, "nome": i.nome, "descricao": i.descricao} for i in itens])
+# -------- Listagens simples --------
+@app.get("/api/pecas")
+def listar_pecas():
+    db = next(db_sess())
+    rows = db.query(Peca).order_by(Peca.descricao).all()
+    return jsonify([{
+        "id_peca": p.id_peca, "sku": p.sku, "descricao": p.descricao,
+        "origem": p.origem.value, "estoque_atual": p.estoque_atual
+    } for p in rows])
 
-@app.post("/api/itens")
-def criar_item():
-    db = next(get_db())
-    data = request.get_json(force=True)
-    nome = (data.get("nome") or "").strip()
-    if not nome:
-        return jsonify({"erro": "nome é obrigatório"}), 400
-    item = Item(nome=nome, descricao=(data.get("descricao") or "").strip())
-    db.add(item)
-    db.commit()
-    db.refresh(item)
-    return jsonify({"id": item.id, "nome": item.nome, "descricao": item.descricao}), 201
+@app.get("/api/funcionarios")
+def listar_funcionarios():
+    db = next(db_sess())
+    rows = db.query(Funcionario).order_by(Funcionario.nome).all()
+    return jsonify([{"id_funcionario": f.id_funcionario, "nome": f.nome, "funcao": f.funcao} for f in rows])
 
-@app.put("/api/itens/<int:item_id>")
-def atualizar_item(item_id):
-    db = next(get_db())
-    item = db.query(Item).get(item_id)
-    if not item:
-        return jsonify({"erro": "não encontrado"}), 404
-    data = request.get_json(force=True)
-    if "nome" in data:
-        item.nome = (data["nome"] or "").strip()
-    if "descricao" in data:
-        item.descricao = (data["descricao"] or "").strip()
-    db.commit()
-    return jsonify({"id": item.id, "nome": item.nome, "descricao": item.descricao})
+@app.get("/api/clientes")
+def listar_clientes():
+    db = next(db_sess())
+    rows = db.query(Cliente).order_by(Cliente.nome_razao).all()
+    return jsonify([{"id_cliente": c.id_cliente, "nome_razao": c.nome_razao, "cpf_cnpj": c.cpf_cnpj} for c in rows])
 
-@app.delete("/api/itens/<int:item_id>")
-def deletar_item(item_id):
-    db = next(get_db())
-    item = db.query(Item).get(item_id)
-    if not item:
-        return jsonify({"erro": "não encontrado"}), 404
-    db.delete(item)
+@app.get("/api/veiculos")
+def listar_veiculos():
+    db = next(db_sess())
+    rows = db.query(Veiculo).order_by(Veiculo.placa).all()
+    return jsonify([{
+        "id_veiculo": v.id_veiculo, "placa": v.placa, "marca": v.marca, "modelo": v.modelo,
+        "cliente": {"id": v.cliente.id_cliente, "nome": v.cliente.nome_razao}
+    } for v in rows])
+
+@app.get("/api/servicos")
+def listar_servicos():
+    db = next(db_sess())
+    rows = db.query(Servico).order_by(Servico.descricao).all()
+    return jsonify([{"id_servico": s.id_servico, "descricao": s.descricao, "preco_padrao": str(s.preco_padrao or 0)} for s in rows])
+
+# -------- (3.1) Peças danificadas por veículo + origem --------
+# GET /api/relatorios/pecas-danificadas?veiculo_id=123
+@app.get("/api/relatorios/pecas-danificadas")
+def pecas_danificadas_por_veiculo():
+    veiculo_id = request.args.get("veiculo_id", type=int)
+    if not veiculo_id:
+        return jsonify({"erro": "informe veiculo_id"}), 400
+    db = next(db_sess())
+
+    # Une OS -> ItemPeca -> Peca; agrupa por peça/origem e soma qtd
+    q = (
+        db.query(
+            Peca.id_peca, Peca.descricao, Peca.origem, func.sum(ItemPeca.qtd).label("qtd_total")
+        )
+        .join(ItemPeca, ItemPeca.id_peca == Peca.id_peca)
+        .join(OS, OS.id_os == ItemPeca.id_os)
+        .filter(OS.id_veiculo == veiculo_id)
+        .group_by(Peca.id_peca, Peca.descricao, Peca.origem)
+        .order_by(Peca.descricao)
+    )
+    data = [{
+        "id_peca": r.id_peca,
+        "descricao": r.descricao,
+        "origem": r.origem.value,
+        "qtd_total": int(r.qtd_total)
+    } for r in q.all()]
+
+    return jsonify({"veiculo_id": veiculo_id, "pecas_para_troca": data})
+
+# -------- (3.2) Agendar serviço (evita conflito de horário) --------
+# body: { "id_cliente":..., "id_veiculo":..., "id_servico":..., "data_hora":"2025-11-06T14:30:00" }
+@app.post("/api/agendamentos")
+def criar_agendamento():
+    db = next(db_sess())
+    payload = request.get_json(force=True)
+    try:
+        novo = Agendamento(
+            id_cliente = int(payload["id_cliente"]),
+            id_veiculo = int(payload["id_veiculo"]),
+            id_servico = int(payload["id_servico"]),
+            data_hora = func.to_timestamp(payload["data_hora"], "YYYY-MM-DD\"T\"HH24:MI:SS")
+            if isinstance(payload["data_hora"], str) else payload["data_hora"],
+        )
+    except Exception:
+        return jsonify({"erro": "JSON inválido. Campos obrigatórios: id_cliente, id_veiculo, id_servico, data_hora ISO"}), 400
+
+    # conflito simples: mesmo veículo no mesmo horário
+    conflito = db.query(Agendamento).filter(
+        and_(Agendamento.id_veiculo == novo.id_veiculo,
+             Agendamento.data_hora == novo.data_hora,
+             Agendamento.status != StatusAgendamento.cancelado)
+    ).first()
+    if conflito:
+        return jsonify({"erro":"conflito de horário para este veículo"}), 409
+
+    db.add(novo)
     db.commit()
-    return "", 204
+    db.refresh(novo)
+    return jsonify({"id_agendamento": novo.id_agendamento, "status": novo.status.value}), 201
+
+@app.get("/api/agendamentos")
+def listar_agendamentos():
+    db = next(db_sess())
+    rows = db.query(Agendamento).order_by(Agendamento.data_hora.desc()).all()
+    return jsonify([{
+        "id_agendamento": a.id_agendamento,
+        "data_hora": a.data_hora.isoformat() if a.data_hora else None,
+        "status": a.status.value,
+        "cliente": a.cliente.nome_razao,
+        "veiculo": a.veiculo.placa,
+        "servico": a.servico.descricao
+    } for a in rows])
+
+# -------- (3.3) Histórico de manutenção por veículo --------
+# GET /api/relatorios/historico-veiculo?veiculo_id=123
+@app.get("/api/relatorios/historico-veiculo")
+def historico_por_veiculo():
+    veiculo_id = request.args.get("veiculo_id", type=int)
+    if not veiculo_id:
+        return jsonify({"erro": "informe veiculo_id"}), 400
+    db = next(db_sess())
+
+    ordens = (
+        db.query(OS)
+        .filter(OS.id_veiculo == veiculo_id)
+        .order_by(OS.id_os.desc())
+        .all()
+    )
+    resp = []
+    for os in ordens:
+        servs = [{
+            "servico": it.servico.descricao,
+            "qtd": it.qtd,
+            "valor_unit": str(it.valor_unit or 0)
+        } for it in os.itens_servico]
+        pecs = [{
+            "peca": it.peca.descricao,
+            "origem": it.peca.origem.value,
+            "qtd": it.qtd,
+            "valor_unit": str(it.valor_unit or 0)
+        } for it in os.itens_peca]
+        pagtos = [{
+            "data": p.data.isoformat() if p.data else None,
+            "forma": p.forma,
+            "valor": str(p.valor)
+        } for p in os.pagamentos]
+        resp.append({
+            "id_os": os.id_os,
+            "status": os.status.value,
+            "km_entrada": os.km_entrada,
+            "problema_relatado": os.problema_relatado,
+            "servicos": servs,
+            "pecas": pecs,
+            "pagamentos": pagtos,
+            "responsavel": os.responsavel.nome
+        })
+    return jsonify({"veiculo_id": veiculo_id, "ordens": resp})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+

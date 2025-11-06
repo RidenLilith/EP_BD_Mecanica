@@ -25,7 +25,7 @@ services:
     # Acesse em http://localhost:8080 (System: PostgreSQL, Server: db, User/Pass: app/app, DB: ep_bd)
 
   backend:
-    build: ./backend
+    build: ./back-end
     environment:
       DATABASE_URL: ${DATABASE_URL}
     ports:
@@ -34,7 +34,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./back-end:/app
 
 volumes:
   db_data:
