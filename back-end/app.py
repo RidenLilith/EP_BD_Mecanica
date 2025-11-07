@@ -13,7 +13,8 @@ from database import Base, engine, SessionLocal
 from models import (
     Cliente, Veiculo, Funcionario, Servico, Peca,
     OS, ItemPeca, ItemServico, Pagamento,
-    Agendamento, StatusAgendamento, StatusOS, OrigemPeca
+    Agendamento, StatusAgendamento, StatusOS, OrigemPeca,
+    Fornecedor, MovimentoEstoque  # <<< ADICIONADOS
 )
 
 app = Flask(__name__)
@@ -188,6 +189,44 @@ def historico_por_veiculo():
             "responsavel": os.responsavel.nome
         })
     return jsonify({"veiculo_id": veiculo_id, "ordens": resp})
+
+# Listar fornecedores
+@app.get("/api/fornecedores")
+def listar_fornecedores():
+    db = next(db_sess())
+    rows = db.query(Fornecedor).order_by(Fornecedor.nome_razao).all()
+    return jsonify([{
+        "id_fornecedor": f.id_fornecedor,
+        "nome_razao": f.nome_razao,
+        "cpf_cnpj": f.cpf_cnpj
+    } for f in rows])
+
+# Listar movimentos de estoque (com filtros opcionais)
+# /api/movimentos-estoque?os_id=1&id_peca=3
+@app.get("/api/movimentos-estoque")
+def listar_movimentos():
+    db = next(db_sess())
+    q = db.query(MovimentoEstoque).order_by(MovimentoEstoque.data.desc())
+    os_id = request.args.get("os_id", type=int)
+    peca_id = request.args.get("id_peca", type=int)
+    if os_id:
+        q = q.filter(MovimentoEstoque.id_os == os_id)
+    if peca_id:
+        q = q.filter(MovimentoEstoque.id_peca == peca_id)
+    rows = q.all()
+    return jsonify([{
+        "id_movimento": m.id_movimento,
+        "data": m.data.isoformat(),
+        "tipo": m.tipo.value,
+        "origem": m.origem,
+        "qtd": m.qtd,
+        "custo_unitario": str(m.custo_unitario) if m.custo_unitario is not None else None,
+        "id_os": m.id_os,
+        "peca": {
+            "id_peca": m.peca.id_peca,
+            "descricao": m.peca.descricao
+        }
+    } for m in rows])
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
