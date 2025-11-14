@@ -1,48 +1,55 @@
-from database import SessionLocal, engine, Base
-from models import Cliente, Veiculo, Funcionario, Servico, Peca, OrigemPeca
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import text
+from database import SessionLocal, Base, engine
+from models import Cliente, Servico, Peca, Funcionario  # Fornecedor só se usar
 
 print("🔄 Criando sessão...")
 db = SessionLocal()
 
+# ---------- UPSERTS ----------
+def upsert_cliente(nome, cpf):
+    stmt = insert(Cliente.__table__).values(nome_razao=nome, cpf_cnpj=cpf)
+    stmt = stmt.on_conflict_do_nothing(index_elements=['cpf_cnpj'])
+    db.execute(stmt)
+
+def upsert_servico(desc, preco):
+    stmt = insert(Servico).values(descricao=desc, preco_padrao=preco)
+    stmt = stmt.on_conflict_do_nothing(index_elements=['descricao'])
+    db.execute(stmt)
+
+def upsert_peca(sku, descricao, origem, estoque=0):
+    stmt = insert(Peca.__table__).values(
+        sku=sku, descricao=descricao, origem=origem, estoque_atual=estoque
+    )
+    stmt = stmt.on_conflict_do_nothing(index_elements=['sku'])
+    db.execute(stmt)
+
+def upsert_funcionario(nome, funcao):
+    # se não tiver UNIQUE em (nome), tudo bem: será sempre insert
+    stmt = insert(Funcionario.__table__).values(nome=nome, funcao=funcao)
+    db.execute(stmt)
+
+# (Opcional) reset total de schema:
 def reset_tables():
-    print("🧨 Limpando tabelas...")
+    print("🧨 Dropando e recriando schema...")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
+# ---------- SEED ----------
 def seed():
-    print("🌱 Inserindo dados iniciais...")
+    print("🌱 Inserindo dados iniciais (idempotente)...")
 
-    # Clientes
-    c1 = Cliente(nome_razao="João da Silva", cpf_cnpj="123.456.789-00")
-    c2 = Cliente(nome_razao="Maria Oliveira", cpf_cnpj="987.654.321-00")
-    c3 = Cliente(nome_razao="Auto Peças Avenida LTDA", cpf_cnpj="12.345.678/0001-99")
+    upsert_cliente("João da Silva", "123.456.789-00")
+    upsert_cliente("Oficina XPTO Ltda", "12.345.678/0001-99")
 
-    db.add_all([c1, c2, c3])
-    db.commit()
+    upsert_servico("Troca de óleo", 120.00)
+    upsert_servico("Alinhamento", 150.00)
 
-    # IMPORTANTE: refresh para pegar IDs
-    db.refresh(c1); db.refresh(c2); db.refresh(c3)
+    upsert_peca("OL-10W40", "Óleo 10W40", "nacional", 20)
+    upsert_peca("FILT-AR-FOX", "Filtro de ar FOX", "importada", 5)
 
-    # VEÍCULOS → Aqui vou preencher quando você escolher o estilo
-    # Exemplo genérico (será substituído):
-    v1 = Veiculo(placa="ABC1A23", modelo="Modelo X", marca="Marca X", id_cliente=c1.id_cliente)
-    v2 = Veiculo(placa="DEF4B56", modelo="Modelo Y", marca="Marca Y", id_cliente=c2.id_cliente)
-    db.add_all([v1, v2])
-
-    # Funcionários
-    f1 = Funcionario(nome="Carlos Mecânico", funcao="Mecânico Geral")
-    f2 = Funcionario(nome="Ana Recepção", funcao="Atendimento")
-    db.add_all([f1, f2])
-
-    # Serviços (exemplos genéricos — vou trocar conforme estilo)
-    s1 = Servico(descricao="Troca de óleo", preco_padrao=120)
-    s2 = Servico(descricao="Revisão básica", preco_padrao=350)
-    db.add_all([s1, s2])
-
-    # Peças
-    p1 = Peca(sku="FILTRO-001", descricao="Filtro de óleo", origem=OrigemPeca.nacional, estoque_atual=25)
-    p2 = Peca(sku="PASTILHA-002", descricao="Pastilha de freio", origem=OrigemPeca.importada, estoque_atual=10)
-    db.add_all([p1, p2])
+    upsert_funcionario("Pedro Mecânico", "Mecânico")
+    upsert_funcionario("Ana Recepção", "Atendimento")
 
     db.commit()
     print("✅ Seed inserido com sucesso!")

@@ -4,10 +4,10 @@ from sqlalchemy import (
     Column, Integer, String, ForeignKey, DateTime, Numeric,
     Enum, Table
 )
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
+from database import Base
 from sqlalchemy.sql import func
 
-Base = declarative_base()
 
 # ======================================================
 # ENUMS
@@ -42,7 +42,7 @@ class Cliente(Base):
 
     id_cliente = Column(Integer, primary_key=True)
     nome_razao = Column(String(120), nullable=False)
-    cpf_cnpj = Column(String(20), nullable=False, unique=True)
+    cpf_cnpj = Column(String(20), nullable=False, unique=True, index=True)
 
     veiculos = relationship("Veiculo", back_populates="cliente")
 
@@ -86,7 +86,7 @@ class Servico(Base):
     __tablename__ = "servico"
 
     id_servico = Column(Integer, primary_key=True)
-    descricao = Column(String(200), nullable=False)
+    descricao = Column(String(200), nullable=False, unique=True, index=True)
     preco_padrao = Column(Numeric(10, 2))
 
     itens_servico = relationship("ItemServico", back_populates="servico")
@@ -99,7 +99,7 @@ class Peca(Base):
     __tablename__ = "peca"
 
     id_peca = Column(Integer, primary_key=True)
-    sku = Column(String(50), unique=True)
+    sku = Column(String(50), nullable=False, unique=True, index=True)
     descricao = Column(String(200), nullable=False)
     origem = Column(Enum(OrigemPeca), nullable=False, default=OrigemPeca.nacional)
     estoque_atual = Column(Integer, nullable=False, default=0)

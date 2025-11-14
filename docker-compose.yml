@@ -36,5 +36,10 @@ services:
     volumes:
       - ./back-end:/app
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "8081:80"
+
 volumes:
   db_data:
