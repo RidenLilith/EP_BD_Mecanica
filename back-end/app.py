@@ -20,17 +20,6 @@ from models import (
 
 app = Flask(__name__)
 CORS(app)
-def ensure_tables():
-    try:
-        Base.metadata.create_all(bind=engine)
-    except OperationalError as e:
-        # DB could be down or misconfigured; print a helpful message and continue so the app can start
-        print("[app.py] WARNING: Unable to create tables at startup. Check DATABASE_URL and DB availability.")
-        print("[app.py] OperationalError:", str(e))
-    except Exception as e:
-        print("[app.py] WARNING: Could not initialize database tables:", str(e))
-
-ensure_tables()
 
 def db_sess():
     db = SessionLocal()

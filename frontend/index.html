@@ -64,6 +64,107 @@
     .layout { grid-template-columns: 84px 1fr; }
     .brand-text, .nav-text { display:none; }
   }
+
+  /* --- Estilo "documento" para relatórios --- */
+  .doc-card {
+    background: linear-gradient(135deg, #020617, #0b1220);
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .doc-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:1rem;
+    margin-bottom:.75rem;
+  }
+  .doc-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color:#e5e7eb;
+  }
+  .doc-subtitle {
+    font-size: .8rem;
+    color:#9ca3af;
+  }
+  .doc-meta {
+    text-align:right;
+    font-size:.75rem;
+    color:#9ca3af;
+  }
+  .doc-badge {
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+    padding:.2rem .55rem;
+    border-radius:999px;
+    font-size:.7rem;
+    background:rgba(129, 140, 248, .16);
+    color:#c7d2fe;
+  }
+  .doc-badge.dot::before {
+    content:"";
+    width:.45rem; height:.45rem;
+    border-radius:999px;
+    background:#22c55e;
+  }
+  .doc-section-title {
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#9ca3af;
+    margin:.35rem 0 .25rem;
+  }
+  .doc-section-title span {
+    color:#e5e7eb;
+    text-transform:none;
+    letter-spacing:0;
+    margin-left:.35rem;
+    font-weight:500;
+  }
+  .doc-table-wrapper {
+    border-radius:10px;
+    border:1px solid rgba(55, 65, 81, .8);
+    overflow:hidden;
+    background:#020617;
+  }
+  .doc-table-wrapper .table {
+    margin-bottom:0;
+  }
+  .doc-footer-note {
+    font-size:.75rem;
+    color:#6b7280;
+    margin-top:.5rem;
+  }
+  .os-header-line {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:1rem;
+    margin-bottom:.25rem;
+  }
+  .os-title {
+    font-weight:600;
+    font-size:.9rem;
+    color:#e5e7eb;
+  }
+  .os-status-pill {
+    font-size:.7rem;
+    padding:.2rem .6rem;
+    border-radius:999px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+  .os-status-pill.em_execucao { background:rgba(59,130,246,.2); color:#bfdbfe; }
+  .os-status-pill.aberto      { background:rgba(234,179,8,.15); color:#facc15; }
+  .os-status-pill.finalizado  { background:rgba(34,197,94,.18); color:#bbf7d0; }
+  .os-meta-line {
+    font-size:.78rem;
+    color:#9ca3af;
+    margin-bottom:.5rem;
+  }
 </style>
 </head>
 <body>
@@ -297,23 +398,44 @@
     <!-- RELATÓRIOS -->
     <section id="section-relatorios" class="d-none">
       <div class="grid">
+        <!-- 3.1 Peças + complexidade -->
         <div class="col-span-12 col-lg-6">
           <div class="card p-3 h-100">
-            <div class="section-title"><i class="bi bi-list-ul"></i><h6 class="mb-0">Relatório 3.1 – Peças por Veículo</h6></div>
-            <div class="mb-2"><select id="sel-pd-veiculo" class="form-select form-select-sm"></select></div>
-            <button class="btn btn-secondary btn-sm mb-3" id="btn-rel-31">
-              <i class="bi bi-search me-1"></i>Consultar
+            <div class="section-title">
+              <i class="bi bi-list-ul"></i>
+              <h6 class="mb-0">Relatório 3.1 – Peças por Veículo &amp; Complexidade</h6>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small mb-1">Selecione o veículo</label>
+              <select id="sel-pd-veiculo" class="form-select form-select-sm"></select>
+            </div>
+
+            <button class="btn btn-secondary btn-sm mb-3 w-100" id="btn-rel-31">
+              <i class="bi bi-search me-1"></i>Gerar relatório
             </button>
-            <div id="rel31-table" class="table-responsive"></div>
+
+            <div id="rel31-table"></div>
           </div>
         </div>
+
+        <!-- 3.3 Histórico de manutenção (documento) -->
         <div class="col-span-12 col-lg-6">
           <div class="card p-3 h-100">
-            <div class="section-title"><i class="bi bi-clock-history"></i><h6 class="mb-0">Relatório 3.3 – Histórico por Veículo</h6></div>
-            <div class="mb-2"><select id="sel-hist-veiculo" class="form-select form-select-sm"></select></div>
-            <button class="btn btn-secondary btn-sm mb-3" id="btn-rel-33">
-              <i class="bi bi-search me-1"></i>Consultar
+            <div class="section-title">
+              <i class="bi bi-clock-history"></i>
+              <h6 class="mb-0">Relatório 3.3 – Histórico de Manutenção por Veículo</h6>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small mb-1">Selecione o veículo</label>
+              <select id="sel-hist-veiculo" class="form-select form-select-sm"></select>
+            </div>
+
+            <button class="btn btn-secondary btn-sm mb-3 w-100" id="btn-rel-33">
+              <i class="bi bi-file-text me-1"></i>Emitir relatório
             </button>
+
             <div id="rel33-blocos"></div>
           </div>
         </div>
@@ -524,42 +646,163 @@
     document.getElementById('sel-hist-veiculo').innerHTML = veiculos.map(opt).join('');
   }
 
+  // 3.1 – peças danificadas + complexidade
   async function consultaPecas(id_veiculo){
     const data = await apiGet(`/relatorios/pecas-danificadas?veiculo_id=${id_veiculo}`);
-    const rows = (data.pecas_para_troca||[]).map(r=>
-      `<tr><td>${r.id_peca}</td><td>${r.descricao}</td><td>${r.origem}</td><td>${r.qtd_total}</td></tr>`
-    ).join('');
     showSection('relatorios');
-    document.getElementById('sel-pd-veiculo').value = id_veiculo;
-    document.getElementById('rel31-table').innerHTML =
-      table(["ID","Peça","Origem","Qtd total"], rows);
+    const sel = document.getElementById('sel-pd-veiculo');
+    sel.value = id_veiculo;
+
+    const lista = data.pecas_para_troca || [];
+
+    let tot = 0, importadas = 0, nacionais = 0;
+    for (const p of lista){
+      const qtd = Number(p.qtd_total || 0);
+      tot += qtd;
+      if (p.origem === 'importada') importadas += qtd;
+      else nacionais += qtd;
+    }
+    let nivel = 'Baixa';
+    if (importadas >= nacionais && importadas > 0) nivel = 'Alta';
+    else if (importadas > 0) nivel = 'Média';
+
+    const veicLabel = sel.options[sel.selectedIndex]?.textContent || `#${id_veiculo}`;
+
+    const rows = lista.map(r =>
+      `<tr>
+        <td>${r.id_peca}</td>
+        <td>${r.descricao}</td>
+        <td>${r.origem}</td>
+        <td>${r.qtd_total}</td>
+      </tr>`
+    ).join('');
+
+    const tabela = table(["ID","Peça","Origem","Qtd total"], rows || '<tr><td colspan="4">Sem peças registradas.</td></tr>');
+
+    document.getElementById('rel31-table').innerHTML = `
+      <div class="doc-card">
+        <div class="doc-header">
+          <div>
+            <div class="doc-title">Relatório de Peças Necessárias para Troca</div>
+            <div class="doc-subtitle">${veicLabel}</div>
+          </div>
+          <div class="doc-meta">
+            <div>Peças totais: <strong>${tot}</strong></div>
+            <div>Nacionais: ${nacionais} &nbsp;•&nbsp; Importadas: ${importadas}</div>
+            <div class="doc-badge"><span class="dot"></span>Complexidade: <strong>${nivel}</strong></div>
+          </div>
+        </div>
+
+        <div class="doc-section-title">Lista de componentes <span>detalhamento por origem</span></div>
+        <div class="doc-table-wrapper">
+          ${tabela}
+        </div>
+
+        <div class="doc-footer-note">
+          Este documento resume as peças danificadas identificadas nas últimas ordens de serviço
+          para o veículo selecionado, indicando a proporção de itens importados que tendem a
+          aumentar o custo e o prazo de reparo.
+        </div>
+      </div>
+    `;
   }
 
+  // 3.3 – histórico de manutenção com cara de documento
   async function consultaHistorico(id_veiculo){
     const data = await apiGet(`/relatorios/historico-veiculo?veiculo_id=${id_veiculo}`);
     showSection('relatorios');
-    document.getElementById('sel-hist-veiculo').value = id_veiculo;
+    const sel = document.getElementById('sel-hist-veiculo');
+    sel.value = id_veiculo;
+    const veicLabel = sel.options[sel.selectedIndex]?.textContent || `Veículo #${id_veiculo}`;
 
-    const blocos = (data.ordens||[]).map(os=>{
-      const servs = os.servicos.map(s=>`<tr><td>${s.servico}</td><td>${s.qtd}</td><td>${s.valor_unit}</td></tr>`).join('');
-      const pecs  = os.pecas.map(p=>`<tr><td>${p.peca}</td><td>${p.origem}</td><td>${p.qtd}</td><td>${p.valor_unit}</td></tr>`).join('');
-      const pags  = os.pagamentos.map(p=>`<tr><td>${(p.data||'').replace('T',' ').slice(0,16)}</td><td>${p.forma||''}</td><td>${p.valor}</td></tr>`).join('');
+    const ordens = data.ordens || [];
+    const qtdOS = ordens.length;
+
+    let datas = [];
+    ordens.forEach(os => {
+      (os.pagamentos || []).forEach(p => {
+        if (p.data) datas.push(p.data);
+      });
+    });
+    datas.sort();
+    const periodo = datas.length
+      ? `${datas[0].slice(0,10)} até ${datas[datas.length-1].slice(0,10)}`
+      : 'Período não informado';
+
+    const blocos = ordens.map(os=>{
+      const servs = (os.servicos || []).map(s=>
+        `<tr><td>${s.servico}</td><td>${s.qtd}</td><td>${s.valor_unit}</td></tr>`
+      ).join('') || '<tr><td colspan="3">Sem serviços cadastrados.</td></tr>';
+
+      const pecs  = (os.pecas || []).map(p=>
+        `<tr><td>${p.peca}</td><td>${p.origem}</td><td>${p.qtd}</td><td>${p.valor_unit}</td></tr>`
+      ).join('') || '<tr><td colspan="4">Sem peças vinculadas.</td></tr>';
+
+      const pags  = (os.pagamentos || []).map(p=>
+        `<tr><td>${(p.data||'').replace('T',' ').slice(0,16)}</td><td>${p.forma||''}</td><td>${p.valor}</td></tr>`
+      ).join('') || '<tr><td colspan="3">Sem registros de pagamento.</td></tr>';
+
+      const statusClass = `os-status-pill ${os.status}`;
+
       return `
-        <div class="card p-3 mb-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">OS #${os.id_os} — ${os.status}</h6>
-            <span class="muted">${os.responsavel}</span>
+        <div class="doc-card">
+          <div class="os-header-line">
+            <div class="os-title">Ordem de Serviço nº ${os.id_os}</div>
+            <div>
+              <span class="${statusClass}">${os.status}</span>
+            </div>
           </div>
-          <div class="muted mb-2">${os.problema_relatado||''} • km: ${os.km_entrada||'-'}</div>
+          <div class="os-meta-line">
+            <strong>Responsável:</strong> ${os.responsavel} &nbsp;•&nbsp;
+            <strong>Quilometragem de entrada:</strong> ${os.km_entrada ?? '-'} km
+            <br>
+            <strong>Problema relatado:</strong> ${os.problema_relatado || '—'}
+          </div>
+
           <div class="row g-3">
-            <div class="col-lg-4">${table(["Serviço","Qtd","Valor"], servs)}</div>
-            <div class="col-lg-4">${table(["Peça","Origem","Qtd","Valor"], pecs)}</div>
-            <div class="col-lg-4">${table(["Data","Forma","Valor"], pags)}</div>
+            <div class="col-lg-4">
+              <div class="doc-section-title">Serviços executados</div>
+              <div class="doc-table-wrapper">
+                ${table(["Serviço","Qtd","Valor"], servs)}
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="doc-section-title">Peças utilizadas</div>
+              <div class="doc-table-wrapper">
+                ${table(["Peça","Origem","Qtd","Valor"], pecs)}
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="doc-section-title">Pagamentos / Faturamento</div>
+              <div class="doc-table-wrapper">
+                ${table(["Data","Forma","Valor"], pags)}
+              </div>
+            </div>
           </div>
         </div>`;
     }).join('');
+
     document.getElementById('rel33-blocos').innerHTML =
-      blocos || '<div class="muted">Sem OS.</div>';
+      `
+      <div class="doc-card mb-3">
+        <div class="doc-header">
+          <div>
+            <div class="doc-title">Relatório de Manutenção</div>
+            <div class="doc-subtitle">${veicLabel}</div>
+          </div>
+          <div class="doc-meta">
+            <div>Ordens de serviço encontradas: <strong>${qtdOS}</strong></div>
+            <div>Período analisado: ${periodo}</div>
+          </div>
+        </div>
+        <div class="doc-footer-note">
+          Documento gerado automaticamente para acompanhamento do histórico de serviços
+          realizados no veículo. Utilize este relatório como base para futuras manutenções,
+          garantia de peças e conferência de faturamento.
+        </div>
+      </div>
+      ${blocos || '<div class="muted">Sem ordens de serviço para este veículo.</div>'}
+      `;
   }
 
   document.getElementById('btn-rel-31').addEventListener('click', ()=> {

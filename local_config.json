@@ -5,6 +5,6 @@
     "password": "root",
     "host": "localhost",
     "port": 5432,
-    "database": "ep_bd"
+    "database": "teste"
   }
 }
