@@ -17,8 +17,9 @@
     --card-bg: #111827;
     --card-border: #1f2937;
     --muted: #9ca3af;
+    --text-purple: #c4b5fd;
   }
-  html, body { height: 100%; background: var(--content-bg); color: #e5e7eb; }
+  html, body { height: 100%; background: var(--content-bg); color: var(--text-purple); }
   .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
   .sidebar {
     background: linear-gradient(180deg, var(--sidebar-bg), var(--sidebar-bg-dark));
@@ -32,12 +33,28 @@
   }
   .nav-link.active, .nav-link:hover { background: rgba(255,255,255,.14); color: #fff; }
   .content { padding: 24px; }
-  .card { background: var(--card-bg); border: 1px solid var(--card-border); }
+  .card { color: var(--text-purple); background: var(--card-bg); border: 1px solid var(--card-border); }
   .muted { color: var(--muted); }
   .table { --bs-table-bg: transparent; --bs-table-color: #e5e7eb; }
   .table thead th { color: var(--muted); font-weight: 600; }
-  .section-title { display:flex; align-items:center; gap:.6rem; margin-bottom:.75rem }
+  .section-title { display:flex; align-items:center; gap:.6rem; margin-bottom:.75rem; color: #ffffff; }
   .section-title i { color:#a78bfa }
+  .form-label { color: #ffffff; }
+  /* Headings - Branco */
+  h1, h2, h3, h4, h5, h6 { color: #ffffff !important; }
+  /* Inputs, Selects, Textareas - Texto Branco */
+  .form-control, .form-select { color: #ffffff !important; background-color: #1f2937; border-color: #374151; }
+  .form-control::placeholder { color: #9ca3af; }
+  .form-control:focus, .form-select:focus { color: #ffffff; background-color: #1f2937; border-color: #6d28d9; box-shadow: 0 0 0 0.2rem rgba(109, 40, 217, 0.25); }
+  .form-control::-webkit-input-placeholder { color: #9ca3af; }
+  /* Options dentro de selects */
+  .form-select option { color: #ffffff; background-color: #1f2937; }
+  /* Botões */
+  .btn { font-weight: 500; }
+  .btn-primary { background-color: #6d28d9; border-color: #6d28d9; }
+  .btn-primary:hover { background-color: #5b21b6; border-color: #5b21b6; }
+  .btn-secondary { background-color: #374151; border-color: #374151; color: #ffffff; }
+  .btn-secondary:hover { background-color: #4b5563; border-color: #4b5563; }
   .grid { display:grid; gap:1rem; grid-template-columns: repeat(12,minmax(0,1fr)); }
   .col-span-12 { grid-column: span 12 / span 12; }
   .col-span-6 { grid-column: span 6 / span 6; }
@@ -56,12 +73,13 @@
   <aside class="sidebar">
     <div class="brand d-flex align-items-center gap-2 mb-3">
       <i class="bi bi-tools fs-5"></i>
-      <span class="brand-text">Oficina – Admin</span>
+      <span class="brand-text">Oficina do seu Zé</span>
     </div>
     <nav class="nav flex-column gap-1">
       <a class="nav-link active" data-section="home"><i class="bi bi-house"></i><span class="nav-text">Início</span></a>
       <a class="nav-link" data-section="veiculos"><i class="bi bi-car-front"></i><span class="nav-text">Veículos</span></a>
       <a class="nav-link" data-section="clientes"><i class="bi bi-people"></i><span class="nav-text">Clientes</span></a>
+      <a class="nav-link" data-section="funcionarios"><i class="bi bi-person-badge"></i><span class="nav-text">Funcionários</span></a>
       <a class="nav-link" data-section="servicos"><i class="bi bi-clipboard2-check"></i><span class="nav-text">Serviços</span></a>
       <a class="nav-link" data-section="pecas"><i class="bi bi-gear"></i><span class="nav-text">Peças</span></a>
       <a class="nav-link" data-section="agendamentos"><i class="bi bi-calendar2-week"></i><span class="nav-text">Agendamentos</span></a>
@@ -79,8 +97,12 @@
         <div class="muted">Interface única com consultas e cadastros rápidos</div>
       </div>
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-light btn-sm" id="btn-recarregar-combos"><i class="bi bi-arrow-repeat me-1"></i>Recarregar dados</button>
-        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgendar"><i class="bi bi-plus-circle me-1"></i>Novo Agendamento</button>
+        <button class="btn btn-outline-light btn-sm" id="btn-recarregar-combos">
+          <i class="bi bi-arrow-repeat me-1"></i>Recarregar dados
+        </button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgendar">
+          <i class="bi bi-plus-circle me-1"></i>Novo Agendamento
+        </button>
       </div>
     </div>
 
@@ -111,53 +133,177 @@
       </div>
     </section>
 
-    <!-- LISTAS BÁSICAS -->
+    <!-- VEÍCULOS -->
     <section id="section-veiculos" class="d-none">
+      <div class="card p-3 mb-3">
+        <div class="section-title"><i class="bi bi-plus-circle"></i><h6 class="mb-0">Novo Veículo</h6></div>
+        <form id="form-veiculo" class="row g-2">
+          <div class="col-md-3">
+            <label class="form-label">Placa</label>
+            <input type="text" class="form-control" id="veiPlaca" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Marca</label>
+            <input type="text" class="form-control" id="veiMarca" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Modelo</label>
+            <input type="text" class="form-control" id="veiModelo" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Km atual</label>
+            <input type="number" class="form-control" id="veiKm" min="0">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Cliente</label>
+            <select class="form-select" id="veiCliente" required></select>
+          </div>
+          <div class="col-12 text-end">
+            <button class="btn btn-primary btn-sm" type="submit">Salvar veículo</button>
+          </div>
+        </form>
+      </div>
+
       <div class="card p-3">
-        <div class="section-title"><i class="bi bi-car-front"></i><h6 class="mb-0">Veículos</h6></div>
+        <div class="section-title"><i class="bi bi-car-front"></i><h6 class="mb-0">Veículos cadastrados</h6></div>
         <div id="veiculos-table" class="table-responsive"></div>
       </div>
     </section>
 
+    <!-- CLIENTES -->
     <section id="section-clientes" class="d-none">
+      <div class="card p-3 mb-3">
+        <div class="section-title"><i class="bi bi-plus-circle"></i><h6 class="mb-0">Novo Cliente</h6></div>
+        <form id="form-cliente" class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">Nome / Razão social</label>
+            <input type="text" class="form-control" id="cliNome" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">CPF / CNPJ</label>
+            <input type="text" class="form-control" id="cliCpf" required>
+          </div>
+          <div class="col-12 text-end">
+            <button class="btn btn-primary btn-sm" type="submit">Salvar cliente</button>
+          </div>
+        </form>
+      </div>
+
       <div class="card p-3">
-        <div class="section-title"><i class="bi bi-people"></i><h6 class="mb-0">Clientes</h6></div>
+        <div class="section-title"><i class="bi bi-people"></i><h6 class="mb-0">Clientes cadastrados</h6></div>
         <div id="clientes-table" class="table-responsive"></div>
       </div>
     </section>
 
-    <section id="section-servicos" class="d-none">
+    <!-- FUNCIONÁRIOS -->
+    <section id="section-funcionarios" class="d-none">
+      <div class="card p-3 mb-3">
+        <div class="section-title"><i class="bi bi-plus-circle"></i><h6 class="mb-0">Novo Funcionário</h6></div>
+        <form id="form-funcionario" class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-control" id="funNome" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Função</label>
+            <input type="text" class="form-control" id="funFuncao">
+          </div>
+          <div class="col-12 text-end">
+            <button class="btn btn-primary btn-sm" type="submit">Salvar funcionário</button>
+          </div>
+        </form>
+      </div>
+
       <div class="card p-3">
-        <div class="section-title"><i class="bi bi-clipboard2-check"></i><h6 class="mb-0">Serviços</h6></div>
+        <div class="section-title"><i class="bi bi-person-badge"></i><h6 class="mb-0">Funcionários cadastrados</h6></div>
+        <div id="func-table" class="table-responsive"></div>
+      </div>
+    </section>
+
+    <!-- SERVIÇOS -->
+    <section id="section-servicos" class="d-none">
+      <div class="card p-3 mb-3">
+        <div class="section-title"><i class="bi bi-plus-circle"></i><h6 class="mb-0">Novo Serviço</h6></div>
+        <form id="form-servico" class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">Descrição</label>
+            <input type="text" class="form-control" id="serDesc" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Preço padrão</label>
+            <input type="number" step="0.01" class="form-control" id="serPreco">
+          </div>
+          <div class="col-12 text-end">
+            <button class="btn btn-primary btn-sm" type="submit">Salvar serviço</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card p-3">
+        <div class="section-title"><i class="bi bi-clipboard2-check"></i><h6 class="mb-0">Serviços cadastrados</h6></div>
         <div id="servicos-table" class="table-responsive"></div>
       </div>
     </section>
 
+    <!-- PEÇAS -->
     <section id="section-pecas" class="d-none">
+      <div class="card p-3 mb-3">
+        <div class="section-title"><i class="bi bi-plus-circle"></i><h6 class="mb-0">Nova Peça</h6></div>
+        <form id="form-peca" class="row g-2">
+          <div class="col-md-3">
+            <label class="form-label">SKU</label>
+            <input type="text" class="form-control" id="pecSku" required>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Descrição</label>
+            <input type="text" class="form-control" id="pecDesc" required>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Origem</label>
+            <select class="form-select" id="pecOrigem">
+              <option value="nacional">Nacional</option>
+              <option value="importada">Importada</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Estoque inicial</label>
+            <input type="number" class="form-control" id="pecEstoque" value="0" min="0">
+          </div>
+          <div class="col-12 text-end">
+            <button class="btn btn-primary btn-sm" type="submit">Salvar peça</button>
+          </div>
+        </form>
+      </div>
+
       <div class="card p-3">
-        <div class="section-title"><i class="bi bi-gear"></i><h6 class="mb-0">Peças</h6></div>
+        <div class="section-title"><i class="bi bi-gear"></i><h6 class="mb-0">Peças cadastradas</h6></div>
         <div id="pecas-table" class="table-responsive"></div>
       </div>
     </section>
 
+    <!-- AGENDAMENTOS -->
     <section id="section-agendamentos" class="d-none">
       <div class="card p-3">
         <div class="d-flex justify-content-between align-items-center">
           <div class="section-title mb-0"><i class="bi bi-calendar2-week"></i><h6 class="mb-0">Agendamentos</h6></div>
-          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgendar"><i class="bi bi-plus-circle me-1"></i>Novo</button>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgendar">
+            <i class="bi bi-plus-circle me-1"></i>Novo
+          </button>
         </div>
         <div id="ag-table" class="table-responsive mt-2"></div>
       </div>
     </section>
 
-    <!-- RELATÓRIOS (3.1 & 3.3) -->
+    <!-- RELATÓRIOS -->
     <section id="section-relatorios" class="d-none">
       <div class="grid">
         <div class="col-span-12 col-lg-6">
           <div class="card p-3 h-100">
             <div class="section-title"><i class="bi bi-list-ul"></i><h6 class="mb-0">Relatório 3.1 – Peças por Veículo</h6></div>
             <div class="mb-2"><select id="sel-pd-veiculo" class="form-select form-select-sm"></select></div>
-            <button class="btn btn-secondary btn-sm mb-3" id="btn-rel-31"><i class="bi bi-search me-1"></i>Consultar</button>
+            <button class="btn btn-secondary btn-sm mb-3" id="btn-rel-31">
+              <i class="bi bi-search me-1"></i>Consultar
+            </button>
             <div id="rel31-table" class="table-responsive"></div>
           </div>
         </div>
@@ -165,16 +311,36 @@
           <div class="card p-3 h-100">
             <div class="section-title"><i class="bi bi-clock-history"></i><h6 class="mb-0">Relatório 3.3 – Histórico por Veículo</h6></div>
             <div class="mb-2"><select id="sel-hist-veiculo" class="form-select form-select-sm"></select></div>
-            <button class="btn btn-secondary btn-sm mb-3" id="btn-rel-33"><i class="bi bi-search me-1"></i>Consultar</button>
+            <button class="btn btn-secondary btn-sm mb-3" id="btn-rel-33">
+              <i class="bi bi-search me-1"></i>Consultar
+            </button>
             <div id="rel33-blocos"></div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- FORNECEDORES & ESTOQUE -->
     <section id="section-fornecedores" class="d-none">
       <div class="grid">
         <div class="col-span-12 col-lg-6">
+          <div class="card p-3 mb-3">
+            <div class="section-title"><i class="bi bi-plus-circle"></i><h6 class="mb-0">Novo Fornecedor</h6></div>
+            <form id="form-fornecedor" class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Nome/Razão social</label>
+                <input type="text" class="form-control" id="fornNome" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">CPF/CNPJ</label>
+                <input type="text" class="form-control" id="fornCpf">
+              </div>
+              <div class="col-12 text-end">
+                <button class="btn btn-primary btn-sm" type="submit">Salvar fornecedor</button>
+              </div>
+            </form>
+          </div>
+
           <div class="card p-3">
             <div class="section-title"><i class="bi bi-truck"></i><h6 class="mb-0">Fornecedores</h6></div>
             <div id="fornec-table" class="table-responsive"></div>
@@ -233,12 +399,15 @@
   // ---------- Navegação SPA ----------
   const links = document.querySelectorAll('.nav-link');
   const sections = [...document.querySelectorAll('main > section')];
+
   function showSection(name){
     links.forEach(l => l.classList.toggle('active', l.dataset.section===name));
     sections.forEach(s => s.classList.toggle('d-none', s.id !== 'section-'+name));
+
     // auto-carregar cada seção
-    if(name==='veiculos') carregarVeiculos();
+    if(name==='veiculos') { carregarVeiculos(); preloadVeiculoClientes(); }
     if(name==='clientes') carregarClientes();
+    if(name==='funcionarios') carregarFuncionarios();
     if(name==='servicos') carregarServicos();
     if(name==='pecas') carregarPecas();
     if(name==='agendamentos') carregarAgendamentos();
@@ -268,25 +437,44 @@
           <button class="btn btn-outline-primary btn-sm" onclick="consultaPecas(${v.id_veiculo})"><i class="bi bi-gear"></i></button>
         </td>
       </tr>`).join('');
-    document.getElementById('veiculos-table').innerHTML = table(["Placa","Marca","Modelo","Cliente","Ações"], rows);
+    document.getElementById('veiculos-table').innerHTML =
+      table(["Placa","Marca","Modelo","Cliente","Ações"], rows);
+  }
+
+  async function preloadVeiculoClientes(){
+    const clientes = await apiGet("/clientes");
+    const sel = document.getElementById('veiCliente');
+    sel.innerHTML = clientes.map(c =>
+      `<option value="${c.id_cliente}">${c.nome_razao} (${c.cpf_cnpj})</option>`
+    ).join('');
   }
 
   async function carregarClientes(){
     const data = await apiGet("/clientes");
     const rows = data.map(c=>`<tr><td>${c.id_cliente}</td><td>${c.nome_razao}</td><td>${c.cpf_cnpj}</td></tr>`).join('');
-    document.getElementById('clientes-table').innerHTML = table(["ID","Nome/Razão","CPF/CNPJ"], rows);
+    document.getElementById('clientes-table').innerHTML =
+      table(["ID","Nome/Razão","CPF/CNPJ"], rows);
+  }
+
+  async function carregarFuncionarios(){
+    const data = await apiGet("/funcionarios");
+    const rows = data.map(f=>`<tr><td>${f.id_funcionario}</td><td>${f.nome}</td><td>${f.funcao||''}</td></tr>`).join('');
+    document.getElementById('func-table').innerHTML =
+      table(["ID","Nome","Função"], rows);
   }
 
   async function carregarServicos(){
     const data = await apiGet("/servicos");
     const rows = data.map(s=>`<tr><td>${s.id_servico}</td><td>${s.descricao}</td><td>${s.preco_padrao}</td></tr>`).join('');
-    document.getElementById('servicos-table').innerHTML = table(["ID","Descrição","Preço padrão"], rows);
+    document.getElementById('servicos-table').innerHTML =
+      table(["ID","Descrição","Preço padrão"], rows);
   }
 
   async function carregarPecas(){
     const data = await apiGet("/pecas");
     const rows = data.map(p=>`<tr><td>${p.id_peca}</td><td>${p.descricao}</td><td>${p.origem}</td><td>${p.estoque_atual}</td></tr>`).join('');
-    document.getElementById('pecas-table').innerHTML = table(["ID","Peça","Origem","Estoque"], rows);
+    document.getElementById('pecas-table').innerHTML =
+      table(["ID","Peça","Origem","Estoque"], rows);
   }
 
   async function carregarAgendamentos(){
@@ -300,13 +488,15 @@
         <td>${a.veiculo}</td>
         <td>${a.servico}</td>
       </tr>`).join('');
-    document.getElementById('ag-table').innerHTML = table(["ID","Data/Hora","Status","Cliente","Veículo","Serviço"], rows);
+    document.getElementById('ag-table').innerHTML =
+      table(["ID","Data/Hora","Status","Cliente","Veículo","Serviço"], rows);
   }
 
   async function carregarFornecedores(){
     const data = await apiGet("/fornecedores");
     const rows = data.map(f=>`<tr><td>${f.id_fornecedor}</td><td>${f.nome_razao}</td><td>${f.cpf_cnpj||''}</td></tr>`).join('');
-    document.getElementById('fornec-table').innerHTML = table(["ID","Fornecedor","CPF/CNPJ"], rows);
+    document.getElementById('fornec-table').innerHTML =
+      table(["ID","Fornecedor","CPF/CNPJ"], rows);
   }
 
   async function carregarMovimentos(){
@@ -322,7 +512,8 @@
         <td>${m.peca?.descricao||''}</td>
         <td>${m.id_os||''}</td>
       </tr>`).join('');
-    document.getElementById('mov-table').innerHTML = table(["ID","Data","Tipo","Origem","Qtd","Custo Unit.","Peça","OS"], rows);
+    document.getElementById('mov-table').innerHTML =
+      table(["ID","Data","Tipo","Origem","Qtd","Custo Unit.","Peça","OS"], rows);
   }
 
   // ---------- Relatórios ----------
@@ -335,10 +526,13 @@
 
   async function consultaPecas(id_veiculo){
     const data = await apiGet(`/relatorios/pecas-danificadas?veiculo_id=${id_veiculo}`);
-    const rows = (data.pecas_para_troca||[]).map(r=>`<tr><td>${r.id_peca}</td><td>${r.descricao}</td><td>${r.origem}</td><td>${r.qtd_total}</td></tr>`).join('');
+    const rows = (data.pecas_para_troca||[]).map(r=>
+      `<tr><td>${r.id_peca}</td><td>${r.descricao}</td><td>${r.origem}</td><td>${r.qtd_total}</td></tr>`
+    ).join('');
     showSection('relatorios');
     document.getElementById('sel-pd-veiculo').value = id_veiculo;
-    document.getElementById('rel31-table').innerHTML = table(["ID","Peça","Origem","Qtd total"], rows);
+    document.getElementById('rel31-table').innerHTML =
+      table(["ID","Peça","Origem","Qtd total"], rows);
   }
 
   async function consultaHistorico(id_veiculo){
@@ -364,7 +558,8 @@
           </div>
         </div>`;
     }).join('');
-    document.getElementById('rel33-blocos').innerHTML = blocos || '<div class="muted">Sem OS.</div>';
+    document.getElementById('rel33-blocos').innerHTML =
+      blocos || '<div class="muted">Sem OS.</div>';
   }
 
   document.getElementById('btn-rel-31').addEventListener('click', ()=> {
@@ -376,17 +571,24 @@
     consultaHistorico(id);
   });
 
-  // ---------- Novo Agendamento (3.2) ----------
+  // ---------- Novo Agendamento ----------
   async function preloadAgendamentoCombos(){
     const [clientes, veiculos, servicos] = await Promise.all([
       apiGet("/clientes"), apiGet("/veiculos"), apiGet("/servicos")
     ]);
     const opt = (id, label) => `<option value="${id}">${label}</option>`;
-    document.getElementById('agCliente').innerHTML = clientes.map(c=>opt(c.id_cliente, `${c.nome_razao} (${c.cpf_cnpj})`)).join('');
-    document.getElementById('agVeiculo').innerHTML = veiculos.map(v=>opt(v.id_veiculo, `${v.placa} — ${v.marca} ${v.modelo}`)).join('');
-    document.getElementById('agServico').innerHTML = servicos.map(s=>opt(s.id_servico, `${s.descricao}`)).join('');
+    document.getElementById('agCliente').innerHTML =
+      clientes.map(c=>opt(c.id_cliente, `${c.nome_razao} (${c.cpf_cnpj})`)).join('');
+    document.getElementById('agVeiculo').innerHTML =
+      veiculos.map(v=>opt(v.id_veiculo, `${v.placa} — ${v.marca} ${v.modelo}`)).join('');
+    document.getElementById('agServico').innerHTML =
+      servicos.map(s=>opt(s.id_servico, `${s.descricao}`)).join('');
   }
-  document.getElementById('btn-recarregar-combos').addEventListener('click', ()=>{ preloadAgendamentoCombos(); preloadCombosRel(); });
+  document.getElementById('btn-recarregar-combos').addEventListener('click', ()=>{
+    preloadAgendamentoCombos();
+    preloadCombosRel();
+    preloadVeiculoClientes();
+  });
 
   document.getElementById('btnSalvarAg').addEventListener('click', async ()=>{
     const payload = {
@@ -398,14 +600,115 @@
     try {
       await apiPost('/agendamentos', payload);
       bootstrap.Modal.getInstance(document.getElementById('modalAgendar')).hide();
-      showSection('agendamentos'); // e recarrega a lista
+      showSection('agendamentos');
     } catch(e){
       alert(e?.data?.erro || e.message);
     }
   });
 
+  // ---------- SUBMITS DE CADASTRO ----------
+  document.getElementById('form-cliente').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const payload = {
+      nome_razao: document.getElementById('cliNome').value,
+      cpf_cnpj: document.getElementById('cliCpf').value
+    };
+    try{
+      await apiPost('/clientes', payload);
+      e.target.reset();
+      await carregarClientes();
+      await preloadVeiculoClientes();
+      await preloadAgendamentoCombos();
+    }catch(err){
+      alert(err?.data?.erro || err.message);
+    }
+  });
+
+  document.getElementById('form-funcionario').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const payload = {
+      nome: document.getElementById('funNome').value,
+      funcao: document.getElementById('funFuncao').value
+    };
+    try{
+      await apiPost('/funcionarios', payload);
+      e.target.reset();
+      await carregarFuncionarios();
+    }catch(err){
+      alert(err?.data?.erro || err.message);
+    }
+  });
+
+  document.getElementById('form-servico').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const payload = {
+      descricao: document.getElementById('serDesc').value,
+      preco_padrao: document.getElementById('serPreco').value || null
+    };
+    try{
+      await apiPost('/servicos', payload);
+      e.target.reset();
+      await carregarServicos();
+      await preloadAgendamentoCombos();
+    }catch(err){
+      alert(err?.data?.erro || err.message);
+    }
+  });
+
+  document.getElementById('form-peca').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const payload = {
+      sku: document.getElementById('pecSku').value,
+      descricao: document.getElementById('pecDesc').value,
+      origem: document.getElementById('pecOrigem').value,
+      estoque_atual: parseInt(document.getElementById('pecEstoque').value || '0')
+    };
+    try{
+      await apiPost('/pecas', payload);
+      e.target.reset();
+      await carregarPecas();
+    }catch(err){
+      alert(err?.data?.erro || err.message);
+    }
+  });
+
+  document.getElementById('form-veiculo').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const payload = {
+      placa: document.getElementById('veiPlaca').value,
+      marca: document.getElementById('veiMarca').value,
+      modelo: document.getElementById('veiModelo').value,
+      km_atual: document.getElementById('veiKm').value ? parseInt(document.getElementById('veiKm').value) : null,
+      id_cliente: parseInt(document.getElementById('veiCliente').value)
+    };
+    try{
+      await apiPost('/veiculos', payload);
+      e.target.reset();
+      await carregarVeiculos();
+      await preloadAgendamentoCombos();
+    }catch(err){
+      alert(err?.data?.erro || err.message);
+    }
+  });
+
+  document.getElementById('form-fornecedor').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const payload = {
+      nome_razao: document.getElementById('fornNome').value,
+      cpf_cnpj: document.getElementById('fornCpf').value || null
+    };
+    try{
+      await apiPost('/fornecedores', payload);
+      e.target.reset();
+      await carregarFornecedores();
+    }catch(err){
+      alert(err?.data?.erro || err.message);
+    }
+  });
+
   // boot
   preloadAgendamentoCombos();
+  preloadVeiculoClientes();
   showSection('home');
 </script>
 

@@ -1,18 +1,14 @@
+# back-end/models.py
 import enum
-from datetime import datetime
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, DateTime, Numeric,
     Enum, Table
 )
 from sqlalchemy.orm import relationship
-from database import Base
 from sqlalchemy.sql import func
+from database import Base
 
-
-# ======================================================
-# ENUMS
-# ======================================================
-
+# ===================== ENUMS ==========================
 class OrigemPeca(str, enum.Enum):
     nacional = "nacional"
     importada = "importada"
@@ -33,10 +29,7 @@ class TipoMovimento(str, enum.Enum):
     saida = "saida"
     ajuste = "ajuste"
 
-# ======================================================
-# CLIENTE
-# ======================================================
-
+# ===================== CLIENTE =========================
 class Cliente(Base):
     __tablename__ = "cliente"
 
@@ -46,10 +39,7 @@ class Cliente(Base):
 
     veiculos = relationship("Veiculo", back_populates="cliente")
 
-# ======================================================
-# VEÍCULO
-# ======================================================
-
+# ===================== VEICULO =========================
 class Veiculo(Base):
     __tablename__ = "veiculo"
 
@@ -65,10 +55,7 @@ class Veiculo(Base):
 
     ordens = relationship("OS", back_populates="veiculo")
 
-# ======================================================
-# FUNCIONÁRIO
-# ======================================================
-
+# ===================== FUNCIONARIO =====================
 class Funcionario(Base):
     __tablename__ = "funcionario"
 
@@ -78,10 +65,7 @@ class Funcionario(Base):
 
     ordens = relationship("OS", back_populates="responsavel")
 
-# ======================================================
-# SERVIÇO
-# ======================================================
-
+# ===================== SERVICO =========================
 class Servico(Base):
     __tablename__ = "servico"
 
@@ -91,10 +75,7 @@ class Servico(Base):
 
     itens_servico = relationship("ItemServico", back_populates="servico")
 
-# ======================================================
-# PEÇA
-# ======================================================
-
+# ===================== PECA ============================
 class Peca(Base):
     __tablename__ = "peca"
 
@@ -108,10 +89,7 @@ class Peca(Base):
     movimentos = relationship("MovimentoEstoque", back_populates="peca")
     fornecedores = relationship("Fornecedor", secondary="fornecedor_peca", back_populates="pecas")
 
-# ======================================================
-# FORNECEDOR (N:N com peça)
-# ======================================================
-
+# ===================== FORNECEDOR ======================
 class Fornecedor(Base):
     __tablename__ = "fornecedor"
 
@@ -127,10 +105,7 @@ fornecedor_peca = Table(
     Column("id_peca", Integer, ForeignKey("peca.id_peca"), primary_key=True),
 )
 
-# ======================================================
-# ORDEM DE SERVIÇO
-# ======================================================
-
+# ===================== OS ==============================
 class OS(Base):
     __tablename__ = "os"
 
@@ -150,10 +125,7 @@ class OS(Base):
     pagamentos = relationship("Pagamento", back_populates="os")
     movimentos = relationship("MovimentoEstoque", back_populates="os")
 
-# ======================================================
-# ITEM SERVIÇO (N : N entre OS e Serviço)
-# ======================================================
-
+# ===================== ITEM SERVICO ====================
 class ItemServico(Base):
     __tablename__ = "item_servico"
 
@@ -167,10 +139,7 @@ class ItemServico(Base):
     id_servico = Column(Integer, ForeignKey("servico.id_servico"), nullable=False)
     servico = relationship("Servico", back_populates="itens_servico")
 
-# ======================================================
-# ITEM PEÇA (N : N entre OS e Peça)
-# ======================================================
-
+# ===================== ITEM PECA =======================
 class ItemPeca(Base):
     __tablename__ = "item_peca"
 
@@ -184,10 +153,7 @@ class ItemPeca(Base):
     id_peca = Column(Integer, ForeignKey("peca.id_peca"), nullable=False)
     peca = relationship("Peca", back_populates="itens_peca")
 
-# ======================================================
-# PAGAMENTO
-# ======================================================
-
+# ===================== PAGAMENTO =======================
 class Pagamento(Base):
     __tablename__ = "pagamento"
 
@@ -199,10 +165,7 @@ class Pagamento(Base):
     id_os = Column(Integer, ForeignKey("os.id_os"), nullable=False)
     os = relationship("OS", back_populates="pagamentos")
 
-# ======================================================
-# MOVIMENTO ESTOQUE (1:N peça, opcionalmente OS)
-# ======================================================
-
+# ===================== MOVIMENTO ESTOQUE ===============
 class MovimentoEstoque(Base):
     __tablename__ = "movimento_estoque"
 
@@ -219,10 +182,7 @@ class MovimentoEstoque(Base):
     id_peca = Column(Integer, ForeignKey("peca.id_peca"), nullable=False)
     peca = relationship("Peca", back_populates="movimentos")
 
-# ======================================================
-# AGENDAMENTO
-# ======================================================
-
+# ===================== AGENDAMENTO ======================
 class Agendamento(Base):
     __tablename__ = "agendamento"
 

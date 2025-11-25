@@ -66,6 +66,52 @@ def listar_veiculos():
         "cliente": {"id": v.cliente.id_cliente, "nome": v.cliente.nome_razao}
     } for v in rows])
 
+@app.post("/api/veiculos")
+def criar_veiculo():
+    db = next(db_sess())
+    data = request.get_json(force=True)
+
+    placa = (data.get("placa") or "").strip().upper()
+    id_cliente = data.get("id_cliente")
+
+    if not placa or not id_cliente:
+        return jsonify({"erro": "placa e id_cliente são obrigatórios"}), 400
+
+    # Verifica se cliente existe
+    cliente = db.query(Cliente).get(id_cliente)
+    if not cliente:
+        return jsonify({"erro": "cliente não encontrado"}), 404
+
+    # Garante placa única
+    ja_existe = db.query(Veiculo).filter_by(placa=placa).first()
+    if ja_existe:
+        return jsonify({"erro": "já existe veículo com essa placa"}), 409
+
+    v = Veiculo(
+        placa=placa,
+        chassi=(data.get("chassi") or "").strip(),
+        km_atual=data.get("km_atual") or 0,
+        marca=(data.get("marca") or "").strip(),
+        modelo=(data.get("modelo") or "").strip(),
+        id_cliente=id_cliente,
+    )
+    db.add(v)
+    db.commit()
+    db.refresh(v)
+
+    return jsonify({
+        "id_veiculo": v.id_veiculo,
+        "placa": v.placa,
+        "marca": v.marca,
+        "modelo": v.modelo,
+        "km_atual": v.km_atual,
+        "cliente": {
+            "id": v.cliente.id_cliente,
+            "nome": v.cliente.nome_razao
+        }
+    }), 201
+
+
 @app.get("/api/servicos")
 def listar_servicos():
     db = next(db_sess())
@@ -227,6 +273,52 @@ def listar_movimentos():
             "descricao": m.peca.descricao
         }
     } for m in rows])
+
+@app.post("/api/clientes")
+def criar_cliente():
+    db = next(db_sess())
+    dados = request.get_json()
+    cli = Cliente(nome_razao=dados["nome_razao"], cpf_cnpj=dados["cpf_cnpj"])
+    db.add(cli)
+    db.commit()
+    db.refresh(cli)
+    return jsonify({"id_cliente": cli.id_cliente}), 201
+
+@app.post("/api/funcionarios")
+def criar_funcionario():
+    db = next(db_sess())
+    d = request.get_json()
+    f = Funcionario(nome=d["nome"], funcao=d.get("funcao"))
+    db.add(f); db.commit(); db.refresh(f)
+    return jsonify({"id_funcionario": f.id_funcionario}), 201
+
+@app.post("/api/servicos")
+def criar_servico():
+    db = next(db_sess())
+    d = request.get_json()
+    s = Servico(descricao=d["descricao"], preco_padrao=d.get("preco_padrao"))
+    db.add(s); db.commit(); db.refresh(s)
+    return jsonify({"id_servico": s.id_servico}), 201
+
+@app.post("/api/pecas")
+def criar_peca():
+    db = next(db_sess())
+    d = request.get_json()
+    p = Peca(
+        sku=d["sku"], descricao=d["descricao"],
+        origem=d["origem"], estoque_atual=d.get("estoque_atual", 0)
+    )
+    db.add(p); db.commit(); db.refresh(p)
+    return jsonify({"id_peca": p.id_peca}), 201
+
+@app.post("/api/fornecedores")
+def criar_fornecedor():
+    db = next(db_sess())
+    d = request.get_json()
+    f = Fornecedor(nome_razao=d["nome_razao"], cpf_cnpj=d.get("cpf_cnpj"))
+    db.add(f); db.commit(); db.refresh(f)
+    return jsonify({"id_fornecedor": f.id_fornecedor}), 201
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
