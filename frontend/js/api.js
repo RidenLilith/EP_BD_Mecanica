@@ -1,4 +1,14 @@
-const API = "/api";
+// If running locally (developer machine) use backend on localhost:5000,
+// otherwise use relative `/api` so the Docker/Nginx setup keeps working.
+const API = (function(){
+  try{
+    const host = window.location.hostname;
+    if(host === 'localhost' || host === '127.0.0.1'){
+      return `${window.location.protocol}//${host}:5000/api`;
+    }
+  }catch(e){}
+  return "/api";
+})();
 
 async function apiGet(path) {
   const r = await fetch(`${API}${path}`);

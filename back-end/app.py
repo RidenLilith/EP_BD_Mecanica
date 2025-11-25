@@ -10,6 +10,7 @@ from flask_cors import CORS
 from sqlalchemy import func, and_
 
 from database import Base, engine, SessionLocal
+from sqlalchemy.exc import OperationalError
 from models import (
     Cliente, Veiculo, Funcionario, Servico, Peca,
     OS, ItemPeca, ItemServico, Pagamento,
@@ -19,7 +20,17 @@ from models import (
 
 app = Flask(__name__)
 CORS(app)
-Base.metadata.create_all(bind=engine)
+def ensure_tables():
+    try:
+        Base.metadata.create_all(bind=engine)
+    except OperationalError as e:
+        # DB could be down or misconfigured; print a helpful message and continue so the app can start
+        print("[app.py] WARNING: Unable to create tables at startup. Check DATABASE_URL and DB availability.")
+        print("[app.py] OperationalError:", str(e))
+    except Exception as e:
+        print("[app.py] WARNING: Could not initialize database tables:", str(e))
+
+ensure_tables()
 
 def db_sess():
     db = SessionLocal()
@@ -321,5 +332,35 @@ def criar_fornecedor():
 
 
 if __name__ == "__main__":
+    # Print connection info so users know what's being used
+    try:
+        from database import DATABASE_URL
+        masked = DATABASE_URL
+        try:
+            # mask password if present
+            import re
+            masked = re.sub(r':[^:@]+@', ':***@', masked)
+        except Exception:
+            pass
+        print(f"[app.py] Starting app with DATABASE_URL: {masked}")
+    except Exception:
+        pass
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+@app.get('/api/health')
+def health_check():
+    # simple healthcheck: app ok and try a DB query
+    status = {"app": True, "db": False}
+    try:
+        db = next(db_sess())
+        db.execute("SELECT 1")
+        status['db'] = True
+    except Exception:
+        status['db'] = False
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass
+    return jsonify(status)
 
