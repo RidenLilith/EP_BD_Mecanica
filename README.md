@@ -1,4 +1,4 @@
-README — EP_BD_Mecanica (versão curta, direta e sem paciência)
+README — EP_BD_Mecanica
 
 Clone o repositório, entre na pasta e rode esses comandos. Só isso.
 
