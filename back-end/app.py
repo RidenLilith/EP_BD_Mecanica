@@ -148,48 +148,166 @@ def pecas_danificadas_por_veiculo():
     return jsonify({"veiculo_id": veiculo_id, "pecas_para_troca": data})
 
 # -------- (3.2) Agendar serviço (evita conflito de horário) --------
-# body: { "id_cliente":..., "id_veiculo":..., "id_servico":..., "data_hora":"2025-11-06T14:30:00" }
-@app.post("/api/agendamentos")
-def criar_agendamento():
-    db = next(db_sess())
-    payload = request.get_json(force=True)
-    try:
-        novo = Agendamento(
-            id_cliente = int(payload["id_cliente"]),
-            id_veiculo = int(payload["id_veiculo"]),
-            id_servico = int(payload["id_servico"]),
-            data_hora = func.to_timestamp(payload["data_hora"], "YYYY-MM-DD\"T\"HH24:MI:SS")
-            if isinstance(payload["data_hora"], str) else payload["data_hora"],
-        )
-    except Exception:
-        return jsonify({"erro": "JSON inválido. Campos obrigatórios: id_cliente, id_veiculo, id_servico, data_hora ISO"}), 400
-
-    # conflito simples: mesmo veículo no mesmo horário
-    conflito = db.query(Agendamento).filter(
-        and_(Agendamento.id_veiculo == novo.id_veiculo,
-             Agendamento.data_hora == novo.data_hora,
-             Agendamento.status != StatusAgendamento.cancelado)
-    ).first()
-    if conflito:
-        return jsonify({"erro":"conflito de horário para este veículo"}), 409
-
-    db.add(novo)
-    db.commit()
-    db.refresh(novo)
-    return jsonify({"id_agendamento": novo.id_agendamento, "status": novo.status.value}), 201
-
+# GET /api/agendamentos
 @app.get("/api/agendamentos")
 def listar_agendamentos():
     db = next(db_sess())
-    rows = db.query(Agendamento).order_by(Agendamento.data_hora.desc()).all()
-    return jsonify([{
-        "id_agendamento": a.id_agendamento,
-        "data_hora": a.data_hora.isoformat() if a.data_hora else None,
-        "status": a.status.value,
-        "cliente": a.cliente.nome_razao,
-        "veiculo": a.veiculo.placa,
-        "servico": a.servico.descricao
-    } for a in rows])
+    ags = (
+        db.query(Agendamento)
+        .order_by(Agendamento.data_hora.desc())
+        .all()
+    )
+
+    resp = []
+    for a in ags:
+        resp.append({
+            "id_agendamento": a.id_agendamento,
+            "data_hora": a.data_hora.isoformat() if a.data_hora else None,
+            "status": a.status.value,
+            "cliente": a.cliente.nome_razao if a.cliente else "",
+            "veiculo": f"{a.veiculo.placa} — {a.veiculo.marca} {a.veiculo.modelo}" if a.veiculo else "",
+            "servico": a.servico.descricao if a.servico else "",
+        })
+    return jsonify(resp)
+
+
+# POST /api/agendamentos
+@app.post("/api/agendamentos")
+def criar_agendamento():
+    db = next(db_sess())
+    payload = request.get_json(force=True) or {}
+
+    try:
+        id_cliente = int(payload["id_cliente"])
+        id_veiculo = int(payload["id_veiculo"])
+        id_servico = int(payload["id_servico"])
+        data_str   = payload["data_hora"]
+
+        # Normaliza datetime-local do HTML (YYYY-MM-DDTHH:MM)
+        if isinstance(data_str, str):
+            if len(data_str) == 16:            # 2025-12-22T18:30
+                data_str += ":00"
+            data_hora = datetime.fromisoformat(data_str)
+        else:
+            data_hora = data_str
+
+    except Exception:
+        return jsonify({
+            "erro": "JSON inválido. Campos obrigatórios: id_cliente, id_veiculo, id_servico, data_hora ISO"
+        }), 400
+
+    # Confere se o veículo pertence ao cliente
+    veic = db.query(Veiculo).get(id_veiculo)
+    if not veic or veic.id_cliente != id_cliente:
+        return jsonify({"erro": "veículo não pertence ao cliente informado"}), 400
+
+    # Conflito de horário (mesmo veículo, mesma data/hora, ignorando cancelados)
+    conflito = db.query(Agendamento).filter(
+        Agendamento.id_veiculo == id_veiculo,
+        Agendamento.data_hora == data_hora,
+        Agendamento.status != StatusAgendamento.cancelado
+    ).first()
+
+    if conflito:
+        return jsonify({"erro": "conflito de horário para este veículo"}), 409
+
+    novo = Agendamento(
+        id_cliente=id_cliente,
+        id_veiculo=id_veiculo,
+        id_servico=id_servico,
+        data_hora=data_hora
+    )
+    db.add(novo)
+    db.commit()
+    db.refresh(novo)
+
+    return jsonify({
+        "id_agendamento": novo.id_agendamento,
+        "status": novo.status.value
+    }), 201
+
+@app.get("/api/clientes/<int:id_cliente>/veiculos")
+def listar_veiculos_de_cliente(id_cliente):
+    db = next(db_sess())
+
+    # garante que o cliente existe
+    cliente = db.query(Cliente).get(id_cliente)
+    if not cliente:
+        return jsonify({"erro": "cliente não encontrado"}), 404
+
+    veiculos = (
+        db.query(Veiculo)
+        .filter(Veiculo.id_cliente == id_cliente)
+        .order_by(Veiculo.placa)
+        .all()
+    )
+
+    return jsonify([
+        {
+            "id": v.id_veiculo,
+            "placa": v.placa,
+            "marca": v.marca,
+            "modelo": v.modelo,
+        }
+        for v in veiculos
+    ])
+
+
+
+def criar_agendamento():
+    db = next(db_sess())
+    payload = request.get_json(force=True) or {}
+
+    try:
+        # Campos obrigatórios
+        id_cliente = int(payload["id_cliente"])
+        id_veiculo = int(payload["id_veiculo"])
+        id_servico = int(payload["id_servico"])
+        data_str   = payload["data_hora"]
+
+        # Normaliza datetime-local do HTML (YYYY-MM-DDTHH:MM ou com segundos)
+        if isinstance(data_str, str):
+            if len(data_str) == 16:        # 2025-12-22T18:30
+                data_str = data_str + ":00"
+            data_hora = datetime.fromisoformat(data_str)
+        else:
+            data_hora = data_str
+
+    except Exception:
+        return jsonify({
+            "erro": "JSON inválido. Campos obrigatórios: id_cliente, id_veiculo, id_servico, data_hora ISO"
+        }), 400
+
+    # Confere se veículo realmente pertence a esse cliente (coerência extra)
+    veic = db.query(Veiculo).get(id_veiculo)
+    if not veic or veic.id_cliente != id_cliente:
+        return jsonify({"erro": "veículo não pertence ao cliente informado"}), 400
+
+    # Conflito simples: mesmo veículo no mesmo horário (ignorando cancelados)
+    conflito = db.query(Agendamento).filter(
+        Agendamento.id_veiculo == id_veiculo,
+        Agendamento.data_hora == data_hora,
+        Agendamento.status != StatusAgendamento.cancelado
+    ).first()
+
+    if conflito:
+        return jsonify({"erro": "conflito de horário para este veículo"}), 409
+
+    # Cria de fato o agendamento
+    novo = Agendamento(
+        id_cliente=id_cliente,
+        id_veiculo=id_veiculo,
+        id_servico=id_servico,
+        data_hora=data_hora
+    )
+    db.add(novo)
+    db.commit()
+    db.refresh(novo)
+
+    return jsonify({
+        "id_agendamento": novo.id_agendamento,
+        "status": novo.status.value
+    }), 201
 
 # -------- (3.3) Histórico de manutenção por veículo --------
 # GET /api/relatorios/historico-veiculo?veiculo_id=123
