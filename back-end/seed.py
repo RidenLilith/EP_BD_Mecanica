@@ -322,21 +322,27 @@ def seed():
                 )
                 db.add(item_serv)
 
-                # 1 peça por OS, usando peças de ID 1 a 25 em rodízio
-                item_peca = ItemPeca(
-                    id_os=os_inst.id_os,
-                    id_peca=((i - 1) % 25) + 1,  # assume que você tem 25 peças
-                    qtd=1,
-                    valor_unit=60.0 + (i % 4) * 10,
-                )
-                db.add(item_peca)
+                # 2-3 peças por OS, usando peças de ID 1 a 25 em rodízio
+                num_pecas = 2 if i % 3 == 0 else 3  # alterna entre 2 e 3 peças
+                for j in range(num_pecas):
+                    item_peca = ItemPeca(
+                        id_os=os_inst.id_os,
+                        id_peca=((i - 1 + j) % 25) + 1,  # peças diferentes
+                        qtd=1 if j == 0 else (j % 2) + 1,  # varia quantidade
+                        valor_unit=60.0 + ((i + j) % 4) * 10,
+                    )
+                    db.add(item_peca)
 
+                # Calcula total de peças
+                db.flush()  # garante que as peças foram inseridas
+                total_pecas = sum(float(p.qtd * p.valor_unit) for p in db.query(ItemPeca).filter_by(id_os=os_inst.id_os).all())
+                
                 # 1 pagamento por OS (simples)
                 pagamento = Pagamento(
                     id_os=os_inst.id_os,
                     data=agora - timedelta(days=i),
                     forma="Dinheiro" if i % 2 == 0 else "Cartão",
-                    valor=(item_serv.valor_unit or 0) + (item_peca.valor_unit or 0),
+                    valor=float(item_serv.valor_unit or 0) + total_pecas,
                 )
                 db.add(pagamento)
 

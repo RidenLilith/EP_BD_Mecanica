@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Teste JSON</title>
+</head>
+<body>
+    <h1>Teste de conversão</h1>
+    <pre id="output"></pre>
+
+    <script>
+        const jsonData = {
+            "servicos": [
+                {
+                    "descricao": "Troca de óleo",
+                    "qtd": 1,
+                    "valor_unit": "150.00"
+                }
+            ],
+            "pecas": [
+                {
+                    "descricao": "Óleo 10W40",
+                    "origem": "nacional",
+                    "qtd": 1,
+                    "valor_unit": "70.00"
+                }
+            ],
+            "pagamentos": [
+                {
+                    "valor": "220.00"
+                }
+            ]
+        };
+
+        let output = "=== TESTE DE CONVERSÃO ===\n\n";
+
+        // Testar serviços
+        output += "SERVIÇOS:\n";
+        jsonData.servicos.forEach(s => {
+            output += `  valor_unit: "${s.valor_unit}"\n`;
+            output += `  typeof: ${typeof s.valor_unit}\n`;
+            output += `  Number(): ${Number(s.valor_unit)}\n`;
+            output += `  Number() || 0: ${Number(s.valor_unit || 0)}\n`;
+            output += `  parseFloat(): ${parseFloat(s.valor_unit)}\n`;
+            output += `  Cálculo: ${s.qtd} × ${Number(s.valor_unit)} = ${s.qtd * Number(s.valor_unit)}\n\n`;
+        });
+
+        // Testar peças
+        output += "PEÇAS:\n";
+        jsonData.pecas.forEach(p => {
+            output += `  valor_unit: "${p.valor_unit}"\n`;
+            output += `  typeof: ${typeof p.valor_unit}\n`;
+            output += `  Number(): ${Number(p.valor_unit)}\n`;
+            output += `  Number() || 0: ${Number(p.valor_unit || 0)}\n`;
+            output += `  parseFloat(): ${parseFloat(p.valor_unit)}\n`;
+            output += `  Cálculo: ${p.qtd} × ${Number(p.valor_unit)} = ${p.qtd * Number(p.valor_unit)}\n\n`;
+        });
+
+        // Testar pagamentos
+        output += "PAGAMENTOS:\n";
+        jsonData.pagamentos.forEach(pg => {
+            output += `  valor: "${pg.valor}"\n`;
+            output += `  typeof: ${typeof pg.valor}\n`;
+            output += `  Number(): ${Number(pg.valor)}\n`;
+            output += `  Number() || 0: ${Number(pg.valor || 0)}\n\n`;
+        });
+
+        // Testar reduce
+        const totalServicos = jsonData.servicos.reduce(
+            (acc, s) => acc + (Number(s.qtd || 0) * Number(s.valor_unit || 0)), 
+            0
+        );
+        const totalPecas = jsonData.pecas.reduce(
+            (acc, p) => acc + (Number(p.qtd || 0) * Number(p.valor_unit || 0)), 
+            0
+        );
+
+        output += `\n=== TOTAIS ===\n`;
+        output += `Total Serviços: R$ ${totalServicos.toFixed(2)}\n`;
+        output += `Total Peças: R$ ${totalPecas.toFixed(2)}\n`;
+        output += `Total Geral: R$ ${(totalServicos + totalPecas).toFixed(2)}\n`;
+
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

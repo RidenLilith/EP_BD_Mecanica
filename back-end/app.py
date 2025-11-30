@@ -127,6 +127,13 @@ def pecas_danificadas_por_veiculo():
         return jsonify({"erro": "informe veiculo_id"}), 400
     db = next(db_sess())
 
+    # Busca dados do veículo e cliente
+    veiculo = db.get(Veiculo, veiculo_id)
+    if not veiculo:
+        return jsonify({"erro": "veículo não encontrado"}), 404
+    
+    cliente = db.get(Cliente, veiculo.id_cliente) if veiculo.id_cliente else None
+
     # Une OS -> ItemPeca -> Peca; agrupa por peça/origem e soma qtd
     q = (
         db.query(
@@ -145,7 +152,19 @@ def pecas_danificadas_por_veiculo():
         "qtd_total": int(r.qtd_total)
     } for r in q.all()]
 
-    return jsonify({"veiculo_id": veiculo_id, "pecas_para_troca": data})
+    return jsonify({
+        "veiculo_id": veiculo_id,
+        "veiculo": {
+            "placa": veiculo.placa,
+            "marca": veiculo.marca,
+            "modelo": veiculo.modelo
+        },
+        "cliente": {
+            "nome_razao": cliente.nome_razao if cliente else None,
+            "cpf_cnpj": cliente.cpf_cnpj if cliente else None
+        } if cliente else None,
+        "pecas_para_troca": data
+    })
 
 # -------- (3.2) Agendar serviço (evita conflito de horário) --------
 # GET /api/agendamentos
@@ -310,13 +329,21 @@ def criar_agendamento():
     }), 201
 
 # -------- (3.3) Histórico de manutenção por veículo --------
-# GET /api/relatorios/historico-veiculo?veiculo_id=123
+
 @app.get("/api/relatorios/historico-veiculo")
-def historico_por_veiculo():
+@app.get("/api/relatorios/historico-veiculo-completo")
+def relatorio_veiculo_completo():
     veiculo_id = request.args.get("veiculo_id", type=int)
     if not veiculo_id:
         return jsonify({"erro": "informe veiculo_id"}), 400
+
     db = next(db_sess())
+
+    veic = db.get(Veiculo, veiculo_id)
+    if not veic:
+        return jsonify({"erro": "veículo não encontrado"}), 404
+
+    cliente = veic.cliente
 
     ordens = (
         db.query(OS)
@@ -324,35 +351,55 @@ def historico_por_veiculo():
         .order_by(OS.id_os.desc())
         .all()
     )
-    resp = []
+
+    lista_os = []
     for os in ordens:
-        servs = [{
-            "servico": it.servico.descricao,
-            "qtd": it.qtd,
-            "valor_unit": str(it.valor_unit or 0)
-        } for it in os.itens_servico]
-        pecs = [{
-            "peca": it.peca.descricao,
-            "origem": it.peca.origem.value,
-            "qtd": it.qtd,
-            "valor_unit": str(it.valor_unit or 0)
-        } for it in os.itens_peca]
-        pagtos = [{
-            "data": p.data.isoformat() if p.data else None,
-            "forma": p.forma,
-            "valor": str(p.valor)
-        } for p in os.pagamentos]
-        resp.append({
+        lista_os.append({
             "id_os": os.id_os,
             "status": os.status.value,
-            "km_entrada": os.km_entrada,
             "problema_relatado": os.problema_relatado,
-            "servicos": servs,
-            "pecas": pecs,
-            "pagamentos": pagtos,
-            "responsavel": os.responsavel.nome
+            "km_entrada": os.km_entrada,
+            "responsavel": os.responsavel.nome,
+            "servicos": [
+                {
+                    "descricao": item.servico.descricao,
+                    "qtd": item.qtd,
+                    "valor_unit": str(item.valor_unit or 0)
+                }
+                for item in os.itens_servico
+            ],
+            "pecas": [
+                {
+                    "descricao": item.peca.descricao,
+                    "origem": item.peca.origem.value,
+                    "qtd": item.qtd,
+                    "valor_unit": str(item.valor_unit or 0)
+                }
+                for item in os.itens_peca
+            ],
+            "pagamentos": [
+                {
+                    "data": p.data.isoformat(),
+                    "forma": p.forma,
+                    "valor": str(p.valor)
+                }
+                for p in os.pagamentos
+            ]
         })
-    return jsonify({"veiculo_id": veiculo_id, "ordens": resp})
+
+    return jsonify({
+        "veiculo": {
+            "placa": veic.placa,
+            "marca": veic.marca,
+            "modelo": veic.modelo,
+        },
+        "cliente": {
+            "nome": cliente.nome_razao,
+            "cpf_cnpj": cliente.cpf_cnpj
+        },
+        "ordens": lista_os
+    })
+
 
 # Listar fornecedores
 @app.get("/api/fornecedores")

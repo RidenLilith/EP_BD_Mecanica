@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Oficina – Painel</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -84,8 +87,15 @@
     color:#e5e7eb;
   }
   .doc-subtitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color:#f1f5f9;
+    margin-top: 0.25rem;
+  }
+  .doc-mini {
     font-size: .8rem;
-    color:#9ca3af;
+    color:#94a3b8;
+    margin-top: 0.35rem;
   }
   .doc-meta {
     text-align:right;
@@ -236,6 +246,536 @@
     background: rgba(239, 68, 68, 0.2);
     color: #fecaca;
   }
+
+  /* ===== Layout estilo documento para relatórios impressos ===== */
+  .os-doc{
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  }
+  .os-doc-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #334155;
+  }
+  .os-doc-title{
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+  }
+  .os-doc-subtitle{
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 0.25rem;
+  }
+  .os-doc-meta{
+    text-align: right;
+    font-size: 0.9rem;
+  }
+  .os-doc-status{
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    background: #3b82f6;
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .os-doc-total{
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #22c55e;
+  }
+  .os-doc-mini{
+    margin-top: 0.25rem;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+  }
+  .os-doc-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    table-layout: fixed;
+  }
+  .os-doc-table th,
+  .os-doc-table td{
+    border: 1px solid #334155;
+    padding: 1rem 1.5rem;
+    vertical-align: middle;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .os-doc-section-row th{
+    background: #6366f1;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #ffffff;
+    padding: 1.25rem 1.5rem;
+  }
+  .os-doc-table thead th{
+    background: #6366f1;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  /* Tabela de serviços (3 colunas): Descrição | Qtd | Valor */
+  .os-doc-table thead th:nth-child(1):not([colspan]),
+  .os-doc-table tbody tr:has(+ tr[class="os-doc-section-row"]) td:nth-child(1),
+  .os-doc-table tr:not(.os-doc-section-row):has(~ .os-doc-section-row:nth-of-type(2)) td:nth-child(1) {
+    width: 60%;
+  }
+  .os-doc-table thead th:nth-child(2):not([colspan]),
+  .os-doc-table tbody tr:has(+ tr[class="os-doc-section-row"]) td:nth-child(2),
+  .os-doc-table tr:not(.os-doc-section-row):has(~ .os-doc-section-row:nth-of-type(2)) td:nth-child(2) {
+    width: 15%;
+    text-align: center;
+  }
+  .os-doc-table thead th:nth-child(3):not([colspan]),
+  .os-doc-table tbody tr:has(+ tr[class="os-doc-section-row"]) td:nth-child(3),
+  .os-doc-table tr:not(.os-doc-section-row):has(~ .os-doc-section-row:nth-of-type(2)) td:nth-child(3) {
+    width: 25%;
+    text-align: right;
+  }
+  
+  /* Tabela de peças (4 colunas): Peça | Origem | Qtd | Valor */
+  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(1),
+  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(1) {
+    width: 40%;
+  }
+  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(2),
+  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(2) {
+    width: 20%;
+    text-align: center;
+  }
+  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(3),
+  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(3) {
+    width: 15%;
+    text-align: center;
+  }
+  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(4),
+  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(4) {
+    width: 25%;
+    text-align: right;
+  }
+  
+  /* Tabela de pagamentos (3 colunas): Data | Forma | Valor */
+  .os-doc-section-row:nth-of-type(3) ~ thead th:nth-child(1),
+  .os-doc-section-row:nth-of-type(3) ~ tbody td:nth-child(1) {
+    width: 35%;
+    text-align: center;
+  }
+  .os-doc-section-row:nth-of-type(3) ~ thead th:nth-child(2),
+  .os-doc-section-row:nth-of-type(3) ~ tbody td:nth-child(2) {
+    width: 40%;
+    text-align: center;
+  }
+  .os-doc-section-row:nth-of-type(3) ~ thead th:nth-child(3),
+  .os-doc-section-row:nth-of-type(3) ~ tbody td:nth-child(3) {
+    width: 25%;
+    text-align: right;
+  }
+  .os-doc-label{
+    width: 26%;
+    font-weight: 500;
+    background: #1e293b;
+  }
+  .os-doc-inner{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .os-doc-inner th,
+  .os-doc-inner td{
+    border: 1px solid #334155;
+    padding: 0.5rem 0.75rem;
+  }
+  .os-doc-footer{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #334155;
+    font-size: 0.9rem;
+    color: #94a3b8;
+  }
+  .os-doc-footer > div{
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .os-doc-footer strong{
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .os-doc-ass{
+    text-align: right;
+  }
+  .os-doc-resumo{
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+  }
+  .os-doc-empty{
+    color: #64748b;
+    padding: 2rem;
+    text-align: center;
+    font-style: italic;
+  }
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Esconde tudo por padrão */
+  .sidebar, nav, .btn, .form-select, .form-label, .section-title, .d-flex {
+    display: none !important;
+  }
+
+  .layout, main {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  main > section {
+    display: none !important;
+  }
+
+  #section-relatorios {
+    display: block !important;
+    margin: 0 !important;
+    padding: 10mm 15mm !important;
+  }
+
+  .grid {
+    display: block !important;
+  }
+
+  /* Esconde ambos os relatórios por padrão */
+  .grid > div {
+    display: none !important;
+  }
+
+  /* Mostra apenas o relatório 3.1 quando data-print-report='31' */
+  body[data-print-report='31'] .grid > .col-span-12:first-child,
+  body[data-print-report='31'] .grid > .col-lg-6:first-child {
+    display: block !important;
+  }
+
+  /* Mostra apenas o relatório 3.3 quando data-print-report='33' */
+  body[data-print-report='33'] .grid > .col-span-12:last-child {
+    display: block !important;
+  }
+
+  .card {
+    background: #ffffff !important;
+    border: 2px solid #555555 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 10mm !important;
+    margin: 0 !important;
+  }
+
+  /* Estilos para relatório 3.1 - Formato documento formal */
+  body[data-print-report='31'] #rel31-table {
+    display: block !important;
+  }
+
+  body[data-print-report='31'] .doc-card {
+    display: block !important;
+    background: #ffffff !important;
+    border: 2px solid #555555 !important;
+    padding: 10mm !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body[data-print-report='31'] .doc-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    padding-bottom: 6mm !important;
+    margin-bottom: 6mm !important;
+    border-bottom: 3px solid #666666 !important;
+  }
+
+  body[data-print-report='31'] .doc-title {
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    color: #333333 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 2mm !important;
+  }
+
+  body[data-print-report='31'] .doc-subtitle {
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+  }
+
+  body[data-print-report='31'] .doc-mini {
+    font-size: 9pt !important;
+    color: #333333 !important;
+    margin-top: 2mm !important;
+  }
+
+  body[data-print-report='31'] .doc-meta {
+    display: block !important;
+    text-align: right !important;
+    font-size: 9pt !important;
+    color: #333333 !important;
+  }
+
+  body[data-print-report='31'] .doc-meta > div {
+    margin-bottom: 1mm !important;
+  }
+
+  body[data-print-report='31'] .doc-badge {
+    display: inline-block !important;
+    background: #666666 !important;
+    color: #ffffff !important;
+    padding: 2mm 4mm !important;
+    margin-top: 2mm !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+  }
+
+  body[data-print-report='31'] .doc-badge .dot {
+    display: none !important;
+  }
+
+  body[data-print-report='31'] .doc-section-title {
+    display: block !important;
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    text-transform: uppercase !important;
+    margin-bottom: 3mm !important;
+    padding-bottom: 2mm !important;
+    border-bottom: 1px solid #666666 !important;
+  }
+
+  body[data-print-report='31'] .doc-section-title span {
+    font-weight: 400 !important;
+    color: #666666 !important;
+    text-transform: none !important;
+    font-size: 8pt !important;
+  }
+
+  body[data-print-report='31'] .doc-table-wrapper {
+    display: block !important;
+  }
+
+  body[data-print-report='31'] .doc-table-wrapper table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    background: #ffffff !important;
+    table-layout: fixed !important;
+  }
+
+  body[data-print-report='31'] .doc-table-wrapper th,
+  body[data-print-report='31'] .doc-table-wrapper td {
+    border: 1.5px solid #666666 !important;
+    padding: 2mm 3mm !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    font-size: 9pt !important;
+  }
+
+  body[data-print-report='31'] .doc-table-wrapper th {
+    background: #666666 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    font-size: 9pt !important;
+    letter-spacing: 0.5px !important;
+    padding: 3mm !important;
+  }
+
+  body[data-print-report='31'] .doc-table-wrapper tbody tr:nth-child(even) {
+    background: #f9f9f9 !important;
+  }
+
+  body[data-print-report='31'] .doc-footer-note {
+    display: block !important;
+    margin-top: 6mm !important;
+    padding-top: 6mm !important;
+    border-top: 2px solid #666666 !important;
+    font-size: 8pt !important;
+    color: #333333 !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Estilos para relatório 3.3 */
+  body[data-print-report='33'] #rel33-blocos {
+    display: block !important;
+  }
+
+  .os-doc {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #555555 !important;
+    border-radius: 0 !important;
+    padding: 10mm !important;
+    margin-bottom: 8mm !important;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    display: block !important;
+  }
+
+  .os-doc-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    padding-bottom: 6mm !important;
+    margin-bottom: 6mm !important;
+    border-bottom: 3px solid #666666 !important;
+  }
+
+  .os-doc-title {
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    color: #333333 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .os-doc-subtitle {
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .os-doc-mini {
+    font-size: 9pt !important;
+    color: #333333 !important;
+  }
+
+  .os-doc-meta {
+    display: block !important;
+    text-align: right !important;
+  }
+
+  .os-doc-status {
+    display: inline-block !important;
+    background: #666666 !important;
+    color: #ffffff !important;
+    padding: 2mm 5mm !important;
+    border-radius: 0 !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .os-doc-total {
+    font-size: 12pt !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    display: block !important;
+  }
+
+  .os-doc-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 4mm !important;
+    background: #ffffff !important;
+    display: table !important;
+    table-layout: fixed !important;
+  }
+
+  .os-doc-table th,
+  .os-doc-table td {
+    border: 1.5px solid #666666 !important;
+    padding: 2mm 3mm !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    font-size: 9pt !important;
+    word-wrap: break-word !important;
+  }
+
+  .os-doc-section-row th {
+    background: #666666 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 9pt !important;
+    text-transform: uppercase !important;
+    padding: 3mm !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .os-doc-table thead th {
+    background: #f5f5f5 !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 8pt !important;
+    border-bottom: 2px solid #666666 !important;
+  }
+
+  .os-doc-footer {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 4mm !important;
+    margin-top: 6mm !important;
+    padding-top: 6mm !important;
+    border-top: 2px solid #666666 !important;
+    color: #333333 !important;
+    font-size: 8pt !important;
+  }
+
+  .os-doc-footer > div {
+    display: block !important;
+  }
+
+  .os-doc-footer strong {
+    color: #000000 !important;
+    font-size: 7pt !important;
+    text-transform: uppercase !important;
+    display: block !important;
+    margin-bottom: 1mm !important;
+    letter-spacing: 0.5px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -491,6 +1031,10 @@
 
     <!-- RELATÓRIOS -->
     <section id="section-relatorios" class="d-none">
+      <div class="section-title mb-3">
+        <i class="bi bi-graph-up"></i>
+        <h6 class="mb-0">Relatórios</h6>
+      </div>
       <div class="grid">
         <!-- 3.1 Peças + complexidade -->
         <div class="col-span-12 col-lg-6">
@@ -509,16 +1053,22 @@
               <i class="bi bi-search me-1"></i>Gerar relatório
             </button>
 
+            <button class="btn btn-outline-light btn-sm mb-3 w-100 d-none" id="btn-pdf-31">
+              <i class="bi bi-printer me-1"></i>Exportar PDF
+            </button>
+
             <div id="rel31-table"></div>
           </div>
         </div>
 
         <!-- 3.3 Histórico de manutenção (documento) -->
-        <div class="col-span-12 col-lg-6">
-          <div class="card p-3 h-100">
-            <div class="section-title">
-              <i class="bi bi-clock-history"></i>
-              <h6 class="mb-0">Relatório 3.3 – Histórico de Manutenção por Veículo</h6>
+        <div class="col-span-12">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="section-title mb-0">
+                <i class="bi bi-clock-history"></i>
+                <h6 class="mb-0">Relatório 3.3 – Histórico de Manutenção por Veículo</h6>
+              </div>
             </div>
 
             <div class="mb-2">
@@ -528,6 +1078,10 @@
 
             <button class="btn btn-secondary btn-sm mb-3 w-100" id="btn-rel-33">
               <i class="bi bi-file-text me-1"></i>Emitir relatório
+            </button>
+
+            <button class="btn btn-outline-light btn-sm mb-3 w-100 d-none" id="btn-pdf-33">
+              <i class="bi bi-printer me-1"></i>Exportar PDF
             </button>
 
             <div id="rel33-blocos"></div>
@@ -664,7 +1218,7 @@
         <td>${v.modelo}</td>
         <td>${v.cliente.nome}</td>
         <td>
-          <button class="btn btn-outline-light btn-sm me-1" onclick="consultaHistorico(${v.id_veiculo})"><i class="bi bi-clock-history"></i></button>
+          <button class="btn btn-outline-light btn-sm me-1" onclick="consultaHistoricoCompleto(${v.id_veiculo})"><i class="bi bi-clock-history"></i></button>
           <button class="btn btn-outline-primary btn-sm" onclick="consultaPecas(${v.id_veiculo})"><i class="bi bi-gear"></i></button>
         </td>
       </tr>`).join('');
@@ -858,6 +1412,8 @@
     sel.value = id_veiculo;
 
     const lista = data.pecas_para_troca || [];
+    const veiculo = data.veiculo || {};
+    const cliente = data.cliente || {};
 
     let tot = 0, importadas = 0, nacionais = 0;
     for (const p of lista){
@@ -870,7 +1426,9 @@
     if (importadas >= nacionais && importadas > 0) nivel = 'Alta';
     else if (importadas > 0) nivel = 'Média';
 
-    const veicLabel = sel.options[sel.selectedIndex]?.textContent || `#${id_veiculo}`;
+    const veicLabel = `${veiculo.placa || ''} — ${veiculo.marca || ''} ${veiculo.modelo || ''}`;
+    const clienteLabel = cliente.nome_razao || 'Cliente não informado';
+    const clienteDoc = cliente.cpf_cnpj || '';
 
     const rows = lista.map(r =>
       `<tr>
@@ -889,6 +1447,7 @@
           <div>
             <div class="doc-title">Relatório de Peças Necessárias para Troca</div>
             <div class="doc-subtitle">${veicLabel}</div>
+            <div class="doc-mini">${clienteLabel} — ${clienteDoc}</div>
           </div>
           <div class="doc-meta">
             <div>Peças totais: <strong>${tot}</strong></div>
@@ -911,107 +1470,21 @@
     `;
   }
 
-  async function consultaHistorico(id_veiculo){
-    const data = await apiGet(`/relatorios/historico-veiculo?veiculo_id=${id_veiculo}`);
-    showSection('relatorios');
-    const sel = document.getElementById('sel-hist-veiculo');
-    sel.value = id_veiculo;
-    const veicLabel = sel.options[sel.selectedIndex]?.textContent || `Veículo #${id_veiculo}`;
-
-    const ordens = data.ordens || [];
-    const qtdOS = ordens.length;
-
-    let datas = [];
-    ordens.forEach(os => {
-      (os.pagamentos || []).forEach(p => {
-        if (p.data) datas.push(p.data);
-      });
-    });
-    datas.sort();
-    const periodo = datas.length
-      ? `${datas[0].slice(0,10)} até ${datas[datas.length-1].slice(0,10)}`
-      : 'Período não informado';
-
-    const blocos = ordens.map(os=>{
-      const servs = (os.servicos || []).map(s=>
-        `<tr><td>${s.servico}</td><td>${s.qtd}</td><td>${s.valor_unit}</td></tr>`
-      ).join('') || '<tr><td colspan="3">Sem serviços cadastrados.</td></tr>';
-
-      const pecs  = (os.pecas || []).map(p=>
-        `<tr><td>${p.peca}</td><td>${p.origem}</td><td>${p.qtd}</td><td>${p.valor_unit}</td></tr>`
-      ).join('') || '<tr><td colspan="4">Sem peças vinculadas.</td></tr>';
-
-      const pags  = (os.pagamentos || []).map(p=>
-        `<tr><td>${(p.data||'').replace('T',' ').slice(0,16)}</td><td>${p.forma||''}</td><td>${p.valor}</td></tr>`
-      ).join('') || '<tr><td colspan="3">Sem registros de pagamento.</td></tr>';
-
-      const statusClass = `os-status-pill ${os.status}`;
-
-      return `
-        <div class="doc-card">
-          <div class="os-header-line">
-            <div class="os-title">Ordem de Serviço nº ${os.id_os}</div>
-            <div><span class="${statusClass}">${os.status}</span></div>
-          </div>
-          <div class="os-meta-line">
-            <strong>Responsável:</strong> ${os.responsavel} &nbsp;•&nbsp;
-            <strong>Quilometragem de entrada:</strong> ${os.km_entrada ?? '-'} km<br>
-            <strong>Problema relatado:</strong> ${os.problema_relatado || '—'}
-          </div>
-
-          <div class="row g-3">
-            <div class="col-lg-4">
-              <div class="doc-section-title">Serviços executados</div>
-              <div class="doc-table-wrapper">
-                ${table(["Serviço","Qtd","Valor"], servs)}
-              </div>
-            </div>
-            <div class="col-lg-4">
-              <div class="doc-section-title">Peças utilizadas</div>
-              <div class="doc-table-wrapper">
-                ${table(["Peça","Origem","Qtd","Valor"], pecs)}
-              </div>
-            </div>
-            <div class="col-lg-4">
-              <div class="doc-section-title">Pagamentos / Faturamento</div>
-              <div class="doc-table-wrapper">
-                ${table(["Data","Forma","Valor"], pags)}
-              </div>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
-
-    document.getElementById('rel33-blocos').innerHTML = `
-      <div class="doc-card mb-3">
-        <div class="doc-header">
-          <div>
-            <div class="doc-title">Relatório de Manutenção</div>
-            <div class="doc-subtitle">${veicLabel}</div>
-          </div>
-          <div class="doc-meta">
-            <div>Ordens de serviço encontradas: <strong>${qtdOS}</strong></div>
-            <div>Período analisado: ${periodo}</div>
-          </div>
-        </div>
-        <div class="doc-footer-note">
-          Documento gerado automaticamente para acompanhamento do histórico de serviços
-          realizados no veículo. Utilize este relatório como base para futuras manutenções,
-          garantia de peças e conferência de faturamento.
-        </div>
-      </div>
-      ${blocos || '<div class="muted">Sem ordens de serviço para este veículo.</div>'}
-    `;
-  }
 
   document.getElementById('btn-rel-31').addEventListener('click', ()=> {
     const id = document.getElementById('sel-pd-veiculo').value;
-    if (id) consultaPecas(id);
+    if (id) {
+      consultaPecas(id);
+      // Mostra botão PDF do relatório 3.1 após gerar
+      setTimeout(() => {
+        document.getElementById('btn-pdf-31').classList.remove('d-none');
+      }, 500);
+    }
   });
-  document.getElementById('btn-rel-33').addEventListener('click', ()=> {
-    const id = document.getElementById('sel-hist-veiculo').value;
-    if (id) consultaHistorico(id);
-  });
+  // document.getElementById('btn-rel-33').addEventListener('click', ()=> {
+  //     const id = document.getElementById('sel-hist-veiculo').value;
+  //     if (id) consultaHistoricoCompleto(id);
+  // });
 
 // ---------- Novo Agendamento ----------
 
@@ -1135,34 +1608,6 @@
       preloadAgendamentoCombos();
     });
 
-  document.getElementById('btnSalvarAg').addEventListener('click', async ()=>{
-    const idCliente = document.getElementById('agCliente').value;
-    const idVeiculo = document.getElementById('agVeiculo').value;
-    const idServico = document.getElementById('agServico').value;
-    const dataHora  = document.getElementById('agDataHora').value;
-
-    if (!idCliente || !idVeiculo || !idServico || !dataHora) {
-      alert('Selecione cliente, veículo, serviço e preencha a data/hora.');
-      return;
-    }
-
-    const payload = {
-      id_cliente: parseInt(idCliente),
-      id_veiculo: parseInt(idVeiculo),
-      id_servico: parseInt(idServico),
-      data_hora: dataHora
-    };
-
-    try {
-      await apiPost('/agendamentos', payload);
-      bootstrap.Modal.getInstance(document.getElementById('modalAgendar')).hide();
-      await carregarAgendamentos();
-      showSection('agendamentos');
-    } catch(e){
-      alert(e?.data?.erro || e.message);
-    }
-  });
-
   // sempre que o modal abrir, zera os campos e recarrega combos
   // const modalAgendarEl = document.getElementById('modalAgendar');
   modalAgendarEl.addEventListener('show.bs.modal', () => {
@@ -1273,6 +1718,145 @@
     }catch(err){
       alert(err?.data?.erro || err.message);
     }
+  });
+
+  // ========== RELATÓRIO 3.3 - Histórico Completo ==========
+  async function consultaHistoricoCompleto(veiculo_id){
+    const data = await apiGet(`/relatorios/historico-veiculo-completo?veiculo_id=${veiculo_id}`);
+    const bloco = document.getElementById("rel33-blocos");
+    bloco.innerHTML = "";
+
+    if (!data.ordens || data.ordens.length === 0){
+      bloco.innerHTML = `<div class="os-doc-empty">Não há ordens de serviço para este veículo.</div>`;
+      return;
+    }
+
+    const veic = data.veiculo;
+    const cli = data.cliente;
+
+    data.ordens.forEach(os => {
+      const servicosRows = (os.servicos || []).map(s => `
+        <tr>
+          <td>${s.descricao}</td>
+          <td>${s.qtd}</td>
+          <td>R$ ${parseFloat(s.valor_unit || 0).toFixed(2)}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="3" class="os-doc-empty">Nenhum serviço</td></tr>`;
+
+      const pecasRows = (os.pecas || []).map(p => `
+        <tr>
+          <td>${p.descricao}</td>
+          <td>${p.origem}</td>
+          <td>${p.qtd}</td>
+          <td>R$ ${parseFloat(p.valor_unit || 0).toFixed(2)}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="4" class="os-doc-empty">Nenhuma peça</td></tr>`;
+
+      const pagamentosRows = (os.pagamentos || []).map(pg => `
+        <tr>
+          <td>${pg.data ? pg.data.slice(0,10) : "-"}</td>
+          <td>${pg.forma || "-"}</td>
+          <td>R$ ${parseFloat(pg.valor || 0).toFixed(2)}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="3" class="os-doc-empty">Nenhum pagamento</td></tr>`;
+
+      const totalServicos = (os.servicos || []).reduce((acc, s) => acc + (parseFloat(s.qtd || 0) * parseFloat(s.valor_unit || 0)), 0);
+      const totalPecas = (os.pecas || []).reduce((acc, p) => acc + (parseFloat(p.qtd || 0) * parseFloat(p.valor_unit || 0)), 0);
+      const totalOS = totalServicos + totalPecas;
+
+      const statusLabel = (os.status || "").replace(/_/g, " ").toUpperCase();
+
+      bloco.innerHTML += `
+        <div class="os-doc">
+          <div class="os-doc-header">
+            <div>
+              <div class="os-doc-title">Ordem de Serviço #${os.id_os}</div>
+              <div class="os-doc-subtitle">${veic.placa} — ${veic.marca} ${veic.modelo}</div>
+              <div class="os-doc-mini">${cli.nome} — ${cli.cpf_cnpj}</div>
+            </div>
+            <div class="os-doc-meta">
+              <div class="os-doc-status">${statusLabel}</div>
+              <div class="os-doc-total">Valor total: R$ ${totalOS.toFixed(2)}</div>
+            </div>
+          </div>
+          <table class="os-doc-table">
+            <tr class="os-doc-section-row"><th colspan="3">Serviços Aplicados</th></tr>
+            <tr><th>Descrição</th><th>Qtd</th><th>Valor</th></tr>
+            ${servicosRows}
+            <tr class="os-doc-section-row"><th colspan="4">Peças Trocadas</th></tr>
+            <tr><th>Peça</th><th>Origem</th><th>Qtd</th><th>Valor</th></tr>
+            ${pecasRows}
+            <tr class="os-doc-section-row"><th colspan="3">Pagamentos</th></tr>
+            <tr><th>Data</th><th>Forma</th><th>Valor</th></tr>
+            ${pagamentosRows}
+          </table>
+          <div class="os-doc-footer">
+            <div><strong>Técnico:</strong> ${os.responsavel || "-"}</div>
+            <div><strong>KM entrada:</strong> ${os.km_entrada ?? "-"}</div>
+            <div><strong>Problema relatado:</strong> ${os.problema_relatado || "-"}</div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // Botão "Emitir relatório" (3.3)
+  document.getElementById("btn-rel-33").onclick = () => {
+    const sel = document.getElementById("sel-hist-veiculo");
+    const id = Number(sel.value);
+    if (!id) {
+      alert("Selecione um veículo primeiro.");
+      return;
+    }
+    consultaHistoricoCompleto(id);
+    // Mostra botão PDF do relatório 3.3 após gerar
+    setTimeout(() => {
+      document.getElementById('btn-pdf-33').classList.remove('d-none');
+    }, 500);
+  };
+
+  // Botão PDF individual do relatório 3.1
+  document.getElementById('btn-pdf-31').addEventListener('click', () => {
+    const rel31 = document.getElementById('rel31-table');
+    if (!rel31 || !rel31.innerHTML.trim()) {
+      alert('Gere o relatório 3.1 primeiro!');
+      return;
+    }
+    // Marca qual relatório está sendo impresso
+    document.body.setAttribute('data-print-report', '31');
+    setTimeout(() => {
+      window.print();
+      document.body.removeAttribute('data-print-report');
+    }, 100);
+  });
+
+  // Botão PDF individual do relatório 3.3
+  document.getElementById('btn-pdf-33').addEventListener('click', () => {
+    const rel33 = document.getElementById('rel33-blocos');
+    if (!rel33 || !rel33.innerHTML.trim()) {
+      alert('Gere o relatório 3.3 primeiro!');
+      return;
+    }
+    // Marca qual relatório está sendo impresso
+    document.body.setAttribute('data-print-report', '33');
+    setTimeout(() => {
+      window.print();
+      document.body.removeAttribute('data-print-report');
+    }, 100);
+  });
+
+  // Botão "Exportar PDF"
+  document.getElementById('btn-imprimir-relatorios').addEventListener('click', () => {
+    const relContainer = document.getElementById('rel33-blocos');
+    
+    if (!relContainer || !relContainer.innerHTML.trim()) {
+      alert('Gere um relatório primeiro antes de exportar!');
+      return;
+    }
+
+    setTimeout(() => {
+      window.print();
+    }, 100);
   });
 
   // boot
