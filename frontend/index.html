@@ -309,8 +309,8 @@
   .os-doc-table{
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
-    table-layout: fixed;
+    margin-top: 0;
+    table-layout: auto;
   }
   .os-doc-table th,
   .os-doc-table td{
@@ -336,63 +336,6 @@
     font-weight: 600;
     font-size: 0.9rem;
     padding: 1rem 1.5rem;
-  }
-  
-  /* Tabela de serviços (3 colunas): Descrição | Qtd | Valor */
-  .os-doc-table thead th:nth-child(1):not([colspan]),
-  .os-doc-table tbody tr:has(+ tr[class="os-doc-section-row"]) td:nth-child(1),
-  .os-doc-table tr:not(.os-doc-section-row):has(~ .os-doc-section-row:nth-of-type(2)) td:nth-child(1) {
-    width: 60%;
-  }
-  .os-doc-table thead th:nth-child(2):not([colspan]),
-  .os-doc-table tbody tr:has(+ tr[class="os-doc-section-row"]) td:nth-child(2),
-  .os-doc-table tr:not(.os-doc-section-row):has(~ .os-doc-section-row:nth-of-type(2)) td:nth-child(2) {
-    width: 15%;
-    text-align: center;
-  }
-  .os-doc-table thead th:nth-child(3):not([colspan]),
-  .os-doc-table tbody tr:has(+ tr[class="os-doc-section-row"]) td:nth-child(3),
-  .os-doc-table tr:not(.os-doc-section-row):has(~ .os-doc-section-row:nth-of-type(2)) td:nth-child(3) {
-    width: 25%;
-    text-align: right;
-  }
-  
-  /* Tabela de peças (4 colunas): Peça | Origem | Qtd | Valor */
-  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(1),
-  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(1) {
-    width: 40%;
-  }
-  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(2),
-  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(2) {
-    width: 20%;
-    text-align: center;
-  }
-  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(3),
-  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(3) {
-    width: 15%;
-    text-align: center;
-  }
-  .os-doc-section-row:nth-of-type(2) ~ thead th:nth-child(4),
-  .os-doc-section-row:nth-of-type(2) ~ tbody td:nth-child(4) {
-    width: 25%;
-    text-align: right;
-  }
-  
-  /* Tabela de pagamentos (3 colunas): Data | Forma | Valor */
-  .os-doc-section-row:nth-of-type(3) ~ thead th:nth-child(1),
-  .os-doc-section-row:nth-of-type(3) ~ tbody td:nth-child(1) {
-    width: 35%;
-    text-align: center;
-  }
-  .os-doc-section-row:nth-of-type(3) ~ thead th:nth-child(2),
-  .os-doc-section-row:nth-of-type(3) ~ tbody td:nth-child(2) {
-    width: 40%;
-    text-align: center;
-  }
-  .os-doc-section-row:nth-of-type(3) ~ thead th:nth-child(3),
-  .os-doc-section-row:nth-of-type(3) ~ tbody td:nth-child(3) {
-    width: 25%;
-    text-align: right;
   }
   .os-doc-label{
     width: 26%;
@@ -1722,6 +1665,13 @@
 
   // ========== RELATÓRIO 3.3 - Histórico Completo ==========
   async function consultaHistoricoCompleto(veiculo_id){
+    // Muda para a seção de relatórios
+    showSection('relatorios');
+    
+    // Atualiza o select do relatório 3.3
+    const sel = document.getElementById('sel-hist-veiculo');
+    sel.value = veiculo_id;
+    
     const data = await apiGet(`/relatorios/historico-veiculo-completo?veiculo_id=${veiculo_id}`);
     const bloco = document.getElementById("rel33-blocos");
     bloco.innerHTML = "";
@@ -1730,6 +1680,11 @@
       bloco.innerHTML = `<div class="os-doc-empty">Não há ordens de serviço para este veículo.</div>`;
       return;
     }
+    
+    // Mostra o botão PDF após gerar o relatório
+    setTimeout(() => {
+      document.getElementById('btn-pdf-33').classList.remove('d-none');
+    }, 500);
 
     const veic = data.veiculo;
     const cli = data.cliente;
@@ -1738,25 +1693,25 @@
       const servicosRows = (os.servicos || []).map(s => `
         <tr>
           <td>${s.descricao}</td>
-          <td>${s.qtd}</td>
-          <td>R$ ${parseFloat(s.valor_unit || 0).toFixed(2)}</td>
+          <td style="text-align: center;">${s.qtd}</td>
+          <td style="text-align: right;">R$ ${parseFloat(s.valor_unit || 0).toFixed(2)}</td>
         </tr>
       `).join("") || `<tr><td colspan="3" class="os-doc-empty">Nenhum serviço</td></tr>`;
 
       const pecasRows = (os.pecas || []).map(p => `
         <tr>
           <td>${p.descricao}</td>
-          <td>${p.origem}</td>
-          <td>${p.qtd}</td>
-          <td>R$ ${parseFloat(p.valor_unit || 0).toFixed(2)}</td>
+          <td style="text-align: center;">${p.origem}</td>
+          <td style="text-align: center;">${p.qtd}</td>
+          <td style="text-align: right;">R$ ${parseFloat(p.valor_unit || 0).toFixed(2)}</td>
         </tr>
       `).join("") || `<tr><td colspan="4" class="os-doc-empty">Nenhuma peça</td></tr>`;
 
       const pagamentosRows = (os.pagamentos || []).map(pg => `
         <tr>
-          <td>${pg.data ? pg.data.slice(0,10) : "-"}</td>
-          <td>${pg.forma || "-"}</td>
-          <td>R$ ${parseFloat(pg.valor || 0).toFixed(2)}</td>
+          <td style="text-align: center;">${pg.data ? pg.data.slice(0,10) : "-"}</td>
+          <td style="text-align: center;">${pg.forma || "-"}</td>
+          <td style="text-align: right;">R$ ${parseFloat(pg.valor || 0).toFixed(2)}</td>
         </tr>
       `).join("") || `<tr><td colspan="3" class="os-doc-empty">Nenhum pagamento</td></tr>`;
 
@@ -1779,17 +1734,25 @@
               <div class="os-doc-total">Valor total: R$ ${totalOS.toFixed(2)}</div>
             </div>
           </div>
-          <table class="os-doc-table">
+          
+          <table class="os-doc-table" style="margin-bottom: 1.5rem;">
             <tr class="os-doc-section-row"><th colspan="3">Serviços Aplicados</th></tr>
-            <tr><th>Descrição</th><th>Qtd</th><th>Valor</th></tr>
-            ${servicosRows}
-            <tr class="os-doc-section-row"><th colspan="4">Peças Trocadas</th></tr>
-            <tr><th>Peça</th><th>Origem</th><th>Qtd</th><th>Valor</th></tr>
-            ${pecasRows}
-            <tr class="os-doc-section-row"><th colspan="3">Pagamentos</th></tr>
-            <tr><th>Data</th><th>Forma</th><th>Valor</th></tr>
-            ${pagamentosRows}
+            <thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th></tr></thead>
+            <tbody>${servicosRows}</tbody>
           </table>
+          
+          <table class="os-doc-table" style="margin-bottom: 1.5rem;">
+            <tr class="os-doc-section-row"><th colspan="4">Peças Trocadas</th></tr>
+            <thead><tr><th>Peça</th><th>Origem</th><th>Qtd</th><th>Valor</th></tr></thead>
+            <tbody>${pecasRows}</tbody>
+          </table>
+          
+          <table class="os-doc-table" style="margin-bottom: 1.5rem;">
+            <tr class="os-doc-section-row"><th colspan="3">Pagamentos</th></tr>
+            <thead><tr><th>Data</th><th>Forma</th><th>Valor</th></tr></thead>
+            <tbody>${pagamentosRows}</tbody>
+          </table>
+          
           <div class="os-doc-footer">
             <div><strong>Técnico:</strong> ${os.responsavel || "-"}</div>
             <div><strong>KM entrada:</strong> ${os.km_entrada ?? "-"}</div>
