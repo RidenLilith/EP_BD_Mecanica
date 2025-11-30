@@ -36,6 +36,8 @@ class Cliente(Base):
     id_cliente = Column(Integer, primary_key=True)
     nome_razao = Column(String(120), nullable=False)
     cpf_cnpj = Column(String(20), nullable=False, unique=True, index=True)
+    telefone = Column(String(20), nullable=False)
+    email = Column(String(100))
 
     veiculos = relationship("Veiculo", back_populates="cliente")
 

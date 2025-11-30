@@ -846,9 +846,17 @@
             <label class="form-label">Nome / Razão social</label>
             <input type="text" class="form-control" id="cliNome" required>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label">CPF / CNPJ</label>
             <input type="text" class="form-control" id="cliCpf" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Telefone</label>
+            <input type="tel" class="form-control" id="cliTelefone" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="cliEmail">
           </div>
           <div class="col-12 text-end">
             <button class="btn btn-primary btn-sm" type="submit">Salvar cliente</button>
@@ -1210,10 +1218,12 @@
         <td>${c.id_cliente}</td>
         <td>${c.nome_razao}</td>
         <td>${c.cpf_cnpj}</td>
+        <td>${c.telefone || '-'}</td>
+        <td>${c.email || '-'}</td>
       </tr>`
     ).join('');
     document.getElementById('clientes-table').innerHTML =
-      table(["ID","Nome/Razão","CPF/CNPJ"], rows);
+      table(["ID","Nome/Razão","CPF/CNPJ","Telefone","Email"], rows);
   }
 
   async function carregarClientes(){
@@ -1372,6 +1382,7 @@
     const veicLabel = `${veiculo.placa || ''} — ${veiculo.marca || ''} ${veiculo.modelo || ''}`;
     const clienteLabel = cliente.nome_razao || 'Cliente não informado';
     const clienteDoc = cliente.cpf_cnpj || '';
+    const clienteContato = [cliente.telefone, cliente.email].filter(x => x).join(' • ') || '-';
 
     const rows = lista.map(r =>
       `<tr>
@@ -1391,6 +1402,7 @@
             <div class="doc-title">Relatório de Peças Necessárias para Troca</div>
             <div class="doc-subtitle">${veicLabel}</div>
             <div class="doc-mini">${clienteLabel} — ${clienteDoc}</div>
+            <div class="doc-mini">Contato: ${clienteContato}</div>
           </div>
           <div class="doc-meta">
             <div>Peças totais: <strong>${tot}</strong></div>
@@ -1568,7 +1580,9 @@
     e.preventDefault();
     const payload = {
       nome_razao: document.getElementById('cliNome').value,
-      cpf_cnpj: document.getElementById('cliCpf').value
+      cpf_cnpj: document.getElementById('cliCpf').value,
+      telefone: document.getElementById('cliTelefone').value,
+      email: document.getElementById('cliEmail').value || null
     };
     try{
       await apiPost('/clientes', payload);
@@ -1720,6 +1734,7 @@
       const totalOS = totalServicos + totalPecas;
 
       const statusLabel = (os.status || "").replace(/_/g, " ").toUpperCase();
+      const clienteContato = [cli.telefone, cli.email].filter(x => x).join(' • ') || '-';
 
       bloco.innerHTML += `
         <div class="os-doc">
@@ -1728,6 +1743,7 @@
               <div class="os-doc-title">Ordem de Serviço #${os.id_os}</div>
               <div class="os-doc-subtitle">${veic.placa} — ${veic.marca} ${veic.modelo}</div>
               <div class="os-doc-mini">${cli.nome} — ${cli.cpf_cnpj}</div>
+              <div class="os-doc-mini">Contato: ${clienteContato}</div>
             </div>
             <div class="os-doc-meta">
               <div class="os-doc-status">${statusLabel}</div>

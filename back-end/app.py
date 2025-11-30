@@ -55,7 +55,13 @@ def listar_funcionarios():
 def listar_clientes():
     db = next(db_sess())
     rows = db.query(Cliente).order_by(Cliente.nome_razao).all()
-    return jsonify([{"id_cliente": c.id_cliente, "nome_razao": c.nome_razao, "cpf_cnpj": c.cpf_cnpj} for c in rows])
+    return jsonify([{
+        "id_cliente": c.id_cliente,
+        "nome_razao": c.nome_razao,
+        "cpf_cnpj": c.cpf_cnpj,
+        "telefone": c.telefone,
+        "email": c.email
+    } for c in rows])
 
 @app.get("/api/veiculos")
 def listar_veiculos():
@@ -161,7 +167,9 @@ def pecas_danificadas_por_veiculo():
         },
         "cliente": {
             "nome_razao": cliente.nome_razao if cliente else None,
-            "cpf_cnpj": cliente.cpf_cnpj if cliente else None
+            "cpf_cnpj": cliente.cpf_cnpj if cliente else None,
+            "telefone": cliente.telefone if cliente else None,
+            "email": cliente.email if cliente else None
         } if cliente else None,
         "pecas_para_troca": data
     })
@@ -395,7 +403,9 @@ def relatorio_veiculo_completo():
         },
         "cliente": {
             "nome": cliente.nome_razao,
-            "cpf_cnpj": cliente.cpf_cnpj
+            "cpf_cnpj": cliente.cpf_cnpj,
+            "telefone": cliente.telefone,
+            "email": cliente.email
         },
         "ordens": lista_os
     })
@@ -443,7 +453,12 @@ def listar_movimentos():
 def criar_cliente():
     db = next(db_sess())
     dados = request.get_json()
-    cli = Cliente(nome_razao=dados["nome_razao"], cpf_cnpj=dados["cpf_cnpj"])
+    cli = Cliente(
+        nome_razao=dados["nome_razao"],
+        cpf_cnpj=dados["cpf_cnpj"],
+        telefone=dados["telefone"],
+        email=dados.get("email")
+    )
     db.add(cli)
     db.commit()
     db.refresh(cli)
