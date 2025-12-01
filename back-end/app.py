@@ -392,6 +392,76 @@ def listar_movimentos():
         }
     } for m in rows])
 
+
+# ---------------------- Reports ----------------------
+@app.get('/api/reports/customer-lifetime-value')
+def report_customer_lifetime_value():
+    db = next(db_sess())
+    q = (
+        db.query(
+            Cliente.id_cliente,
+            Cliente.nome_razao,
+            func.coalesce(func.sum(Pagamento.valor), 0).label('total_pago')
+        )
+        .outerjoin(Veiculo, Veiculo.id_cliente == Cliente.id_cliente)
+        .outerjoin(OS, OS.id_veiculo == Veiculo.id_veiculo)
+        .outerjoin(Pagamento, Pagamento.id_os == OS.id_os)
+        .group_by(Cliente.id_cliente, Cliente.nome_razao)
+        .order_by(func.coalesce(func.sum(Pagamento.valor), 0).desc())
+    )
+    rows = q.all()
+    return jsonify([{
+        'id_cliente': r.id_cliente,
+        'nome_razao': r.nome_razao,
+        'total_pago': str(r.total_pago)
+    } for r in rows])
+
+
+@app.get('/api/reports/top-services-by-revenue')
+def report_top_services_by_revenue():
+    db = next(db_sess())
+    q = (
+        db.query(
+            Servico.id_servico,
+            Servico.descricao,
+            func.coalesce(func.sum(ItemServico.valor_unit * ItemServico.qtd), 0).label('receita')
+        )
+        .join(ItemServico, ItemServico.id_servico == Servico.id_servico)
+        .group_by(Servico.id_servico, Servico.descricao)
+        .order_by(func.coalesce(func.sum(ItemServico.valor_unit * ItemServico.qtd), 0).desc())
+    )
+    rows = q.all()
+    return jsonify([{
+        'id_servico': r.id_servico,
+        'descricao': r.descricao,
+        'receita': str(r.receita)
+    } for r in rows])
+
+
+@app.get('/api/reports/parts-usage-frequency')
+def report_parts_usage_frequency():
+    db = next(db_sess())
+    q = (
+        db.query(
+            Peca.id_peca,
+            Peca.sku,
+            Peca.descricao,
+            func.coalesce(func.sum(ItemPeca.qtd), 0).label('total_qtd'),
+            func.count(func.distinct(ItemPeca.id_os)).label('vezes_usada')
+        )
+        .outerjoin(ItemPeca, ItemPeca.id_peca == Peca.id_peca)
+        .group_by(Peca.id_peca, Peca.sku, Peca.descricao)
+        .order_by(func.coalesce(func.sum(ItemPeca.qtd), 0).desc())
+    )
+    rows = q.all()
+    return jsonify([{
+        'id_peca': r.id_peca,
+        'sku': r.sku,
+        'descricao': r.descricao,
+        'total_qtd': int(r.total_qtd) if r.total_qtd is not None else 0,
+        'vezes_usada': int(r.vezes_usada) if r.vezes_usada is not None else 0
+    } for r in rows])
+
 @app.post("/api/clientes")
 def criar_cliente():
     db = next(db_sess())
