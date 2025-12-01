@@ -26,14 +26,16 @@ def mask_url(url: str) -> str:
 
 print(f"[seed.py] Engine dialect: {engine.dialect.name} | DB: {mask_url(DATABASE_URL)}")
 
-def upsert_cliente(db, nome, cpf):
+def upsert_cliente(db, nome, cpf, telefone='(00) 00000-0000', email=None):
     if is_postgres:
-        stmt = pg_insert(Cliente.__table__).values(nome_razao=nome, cpf_cnpj=cpf)
+        stmt = pg_insert(Cliente.__table__).values(
+            nome_razao=nome, cpf_cnpj=cpf, telefone=telefone, email=email
+        )
         stmt = stmt.on_conflict_do_nothing(index_elements=['cpf_cnpj'])
         db.execute(stmt)
     else:
         if not db.query(Cliente).filter_by(cpf_cnpj=cpf).first():
-            db.add(Cliente(nome_razao=nome, cpf_cnpj=cpf))
+            db.add(Cliente(nome_razao=nome, cpf_cnpj=cpf, telefone=telefone, email=email))
 
 def upsert_servico(db, desc, preco):
     if is_postgres:
@@ -110,20 +112,23 @@ def seed():
                 ("Gustavo Ribeiro", "555.444.333-88"),
                 ("Patrícia Mendes", "666.555.444-99"),
 
-                ("Mercado Central Ltda", "22.111.333/0001-44"),
-                ("Construtora Alpha", "33.222.444/0001-55"),
-                ("Auto Peças Brasília", "44.333.555/0001-66"),
-                ("Serviços Rápidos ME", "55.444.666/0001-77"),
-                ("GlassCar Vidros", "66.555.777/0001-88"),
+                ("Mercado Central Ltda", "22.111.333/0001-44", "(61) 3333-4444", "contato@mercadocentral.com"),
+                ("Construtora Alpha", "33.222.444/0001-55", "(61) 3444-5555", "alpha@construtora.com"),
+                ("Auto Peças Brasília", "44.333.555/0001-66", "(61) 3555-6666", "vendas@autopecas.com"),
+                ("Serviços Rápidos ME", "55.444.666/0001-77", "(61) 3666-7777", None),
+                ("GlassCar Vidros", "66.555.777/0001-88", "(61) 3777-8888", "glasscar@email.com"),
 
-                ("Eduardo Lima", "111.888.999-77"),
-                ("Sofia Martins", "222.777.888-66"),
-                ("Roberto Farias", "333.666.777-55"),
-                ("Daniel Rodrigues", "444.555.666-44"),
-                ("Helena Cardoso", "555.444.555-33"),
+                ("Eduardo Lima", "111.888.999-77", "(61) 98888-9999", "eduardo@email.com"),
+                ("Sofia Martins", "222.777.888-66", "(61) 97777-8888", "sofia.martins@email.com"),
+                ("Roberto Farias", "333.666.777-55", "(61) 96666-7777", None),
+                ("Daniel Rodrigues", "444.555.666-44", "(61) 95555-6666", "daniel.r@email.com"),
+                ("Helena Cardoso", "555.444.555-33", "(61) 94444-5555", "helena@email.com"),
             ]
-            for nome, cpf in clientes:
-                upsert_cliente(db, nome, cpf)
+            for dados in clientes:
+                nome, cpf = dados[0], dados[1]
+                tel = dados[2] if len(dados) > 2 else "(00) 00000-0000"
+                email = dados[3] if len(dados) > 3 else None
+                upsert_cliente(db, nome, cpf, tel, email)
             db.commit()
 
             # SERVIÇOS
@@ -322,21 +327,27 @@ def seed():
                 )
                 db.add(item_serv)
 
-                # 1 peça por OS, usando peças de ID 1 a 25 em rodízio
-                item_peca = ItemPeca(
-                    id_os=os_inst.id_os,
-                    id_peca=((i - 1) % 25) + 1,  # assume que você tem 25 peças
-                    qtd=1,
-                    valor_unit=60.0 + (i % 4) * 10,
-                )
-                db.add(item_peca)
+                # 2-3 peças por OS, usando peças de ID 1 a 25 em rodízio
+                num_pecas = 2 if i % 3 == 0 else 3  # alterna entre 2 e 3 peças
+                for j in range(num_pecas):
+                    item_peca = ItemPeca(
+                        id_os=os_inst.id_os,
+                        id_peca=((i - 1 + j) % 25) + 1,  # peças diferentes
+                        qtd=1 if j == 0 else (j % 2) + 1,  # varia quantidade
+                        valor_unit=60.0 + ((i + j) % 4) * 10,
+                    )
+                    db.add(item_peca)
 
+                # Calcula total de peças
+                db.flush()  # garante que as peças foram inseridas
+                total_pecas = sum(float(p.qtd * p.valor_unit) for p in db.query(ItemPeca).filter_by(id_os=os_inst.id_os).all())
+                
                 # 1 pagamento por OS (simples)
                 pagamento = Pagamento(
                     id_os=os_inst.id_os,
                     data=agora - timedelta(days=i),
                     forma="Dinheiro" if i % 2 == 0 else "Cartão",
-                    valor=(item_serv.valor_unit or 0) + (item_peca.valor_unit or 0),
+                    valor=float(item_serv.valor_unit or 0) + total_pecas,
                 )
                 db.add(pagamento)
 

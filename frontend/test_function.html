@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Função</title>
+</head>
+<body>
+    <h1>Teste do botão consultaHistoricoCompleto</h1>
+    <button onclick="testar()">Testar Função</button>
+    <div id="output"></div>
+
+    <script>
+        // Simular apiGet
+        async function apiGet(endpoint) {
+            console.log('apiGet chamado:', endpoint);
+            const response = await fetch('http://localhost:5000/api' + endpoint);
+            return await response.json();
+        }
+
+        async function consultaHistoricoCompleto(veiculo_id){
+            console.log('consultaHistoricoCompleto chamado com veiculo_id:', veiculo_id);
+            
+            try {
+                const data = await apiGet(`/relatorios/historico-veiculo-completo?veiculo_id=${veiculo_id}`);
+                console.log('Dados recebidos:', data);
+                document.getElementById('output').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('output').innerHTML = '<p style="color: red;">Erro: ' + error.message + '</p>';
+            }
+        }
+
+        function testar() {
+            console.log('Botão clicado!');
+            consultaHistoricoCompleto(1);
+        }
+    </script>
+</body>
+</html>
