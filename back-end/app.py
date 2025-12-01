@@ -410,47 +410,6 @@ def relatorio_veiculo_completo():
         "ordens": lista_os
     })
 
-
-# Listar fornecedores
-@app.get("/api/fornecedores")
-def listar_fornecedores():
-    db = next(db_sess())
-    rows = db.query(Fornecedor).order_by(Fornecedor.nome_razao).all()
-    return jsonify([{
-        "id_fornecedor": f.id_fornecedor,
-        "nome_razao": f.nome_razao,
-        "cpf_cnpj": f.cpf_cnpj
-    } for f in rows])
-
-# Listar movimentos de estoque (com filtros opcionais)
-# /api/movimentos-estoque?os_id=1&id_peca=3
-@app.get("/api/movimentos-estoque")
-def listar_movimentos():
-    db = next(db_sess())
-    q = db.query(MovimentoEstoque).order_by(MovimentoEstoque.data.desc())
-    os_id = request.args.get("os_id", type=int)
-    peca_id = request.args.get("id_peca", type=int)
-    if os_id:
-        q = q.filter(MovimentoEstoque.id_os == os_id)
-    if peca_id:
-        q = q.filter(MovimentoEstoque.id_peca == peca_id)
-    rows = q.all()
-    return jsonify([{
-        "id_movimento": m.id_movimento,
-        "data": m.data.isoformat(),
-        "tipo": m.tipo.value,
-        "origem": m.origem,
-        "qtd": m.qtd,
-        "custo_unitario": str(m.custo_unitario) if m.custo_unitario is not None else None,
-        "id_os": m.id_os,
-        "peca": {
-            "id_peca": m.peca.id_peca,
-            "descricao": m.peca.descricao
-        }
-    } for m in rows])
-
-
-# ---------------------- Reports ----------------------
 @app.get('/api/reports/customer-lifetime-value')
 def report_customer_lifetime_value():
     db = next(db_sess())
@@ -518,6 +477,44 @@ def report_parts_usage_frequency():
         'total_qtd': int(r.total_qtd) if r.total_qtd is not None else 0,
         'vezes_usada': int(r.vezes_usada) if r.vezes_usada is not None else 0
     } for r in rows])
+
+# Listar fornecedores
+@app.get("/api/fornecedores")
+def listar_fornecedores():
+    db = next(db_sess())
+    rows = db.query(Fornecedor).order_by(Fornecedor.nome_razao).all()
+    return jsonify([{
+        "id_fornecedor": f.id_fornecedor,
+        "nome_razao": f.nome_razao,
+        "cpf_cnpj": f.cpf_cnpj
+    } for f in rows])
+
+# Listar movimentos de estoque (com filtros opcionais)
+# /api/movimentos-estoque?os_id=1&id_peca=3
+@app.get("/api/movimentos-estoque")
+def listar_movimentos():
+    db = next(db_sess())
+    q = db.query(MovimentoEstoque).order_by(MovimentoEstoque.data.desc())
+    os_id = request.args.get("os_id", type=int)
+    peca_id = request.args.get("id_peca", type=int)
+    if os_id:
+        q = q.filter(MovimentoEstoque.id_os == os_id)
+    if peca_id:
+        q = q.filter(MovimentoEstoque.id_peca == peca_id)
+    rows = q.all()
+    return jsonify([{
+        "id_movimento": m.id_movimento,
+        "data": m.data.isoformat(),
+        "tipo": m.tipo.value,
+        "origem": m.origem,
+        "qtd": m.qtd,
+        "custo_unitario": str(m.custo_unitario) if m.custo_unitario is not None else None,
+        "id_os": m.id_os,
+        "peca": {
+            "id_peca": m.peca.id_peca,
+            "descricao": m.peca.descricao
+        }
+    } for m in rows])
 
 @app.post("/api/clientes")
 def criar_cliente():

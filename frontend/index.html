@@ -85,47 +85,7 @@
     font-size: .95rem;
     font-weight: 600;
     color:#e5e7eb;
-  }
-  .doc-subtitle {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color:#f1f5f9;
-    margin-top: 0.25rem;
-  }
-  .doc-mini {
-    font-size: .8rem;
-    color:#94a3b8;
-    margin-top: 0.35rem;
-  }
-  .doc-meta {
-    text-align:right;
-    font-size:.75rem;
-    color:#9ca3af;
-  }
-  .doc-badge {
-    display:inline-flex;
-    align-items:center;
-    gap:.35rem;
-    padding:.2rem .55rem;
-    border-radius:999px;
-    font-size:.7rem;
-    background:rgba(129, 140, 248, .16);
-    color:#c7d2fe;
-  }
-  .doc-badge.dot::before {
-    content:"";
-    width:.45rem; height:.45rem;
-    border-radius:999px;
-    background:#22c55e;
-  }
-  .doc-section-title {
-    font-size:.8rem;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:#9ca3af;
-    margin:.35rem 0 .25rem;
-  }
-  .doc-section-title span {
+  
     color:#e5e7eb;
     text-transform:none;
     letter-spacing:0;
@@ -1012,7 +972,7 @@
           </div>
         </div>
 
-        <!-- 3.3 Histórico de manutenção (documento) -->
+          <!-- 3.3 Histórico de manutenção (documento) -->
         <div class="col-span-12">
           <div class="card p-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1036,6 +996,50 @@
             </button>
 
             <div id="rel33-blocos"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Additional reports: CLV, Top Services, Parts Usage -->
+      <div class="col-span-12 mt-3">
+        <div class="card p-3">
+          <div class="section-title mb-3">
+            <i class="bi bi-bar-chart-line"></i>
+            <h6 class="mb-0">Relatórios Adicionais</h6>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="card p-3">
+                <div class="doc-section-title">Customer Lifetime Value</div>
+                  <div class="small text-muted mb-2">Total de pagamentos por cliente</div>
+                  <div class="mb-2">
+                    <label class="form-label small mb-1">Cliente</label>
+                    <select id="sel-clv-cliente" class="form-select form-select-sm">
+                      <option value="">Todos os clientes</option>
+                    </select>
+                  </div>
+                  <button class="btn btn-primary btn-sm w-100 mb-2" id="btn-report-clv">Gerar CLV</button>
+                  <div id="report-clv-table" class="table-responsive"></div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card p-3">
+                <div class="doc-section-title">Top Services by Revenue</div>
+                <div class="small text-muted mb-2">Serviços com maior receita</div>
+                <button class="btn btn-primary btn-sm w-100 mb-2" id="btn-report-services">Gerar Top Services</button>
+                <div id="report-services-table" class="table-responsive"></div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card p-3">
+                <div class="doc-section-title">Parts Usage Frequency</div>
+                <div class="small text-muted mb-2">Peças mais utilizadas</div>
+                <button class="btn btn-primary btn-sm w-100 mb-2" id="btn-report-parts">Gerar Parts Usage</button>
+                <div id="report-parts-table" class="table-responsive"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1198,6 +1202,116 @@
     renderVeiculosTable(filtrados);
   });
 
+  // ---------- Reports: CLV, Top Services, Parts Usage ----------
+  // Render table helper for CLV
+  function renderCLVTable(data){
+    if(!data || !data.length) return '<div class="p-2">Sem dados</div>';
+    const rows = data.map(r => `
+      <tr>
+        <td>${r.id_cliente}</td>
+        <td>${r.nome_razao}</td>
+        <td style="text-align:right;">R$ ${parseFloat(r.total_pago || 0).toFixed(2)}</td>
+      </tr>
+    `).join('');
+    return `
+      <table class="table table-sm align-middle">
+        <thead><tr><th>ID</th><th>Nome/Razão</th><th style="text-align:right;">Total Pago</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  // Fetch and render CLV; if clienteId provided, filter to that customer
+  async function reportCustomerLifetimeValue(clienteId){
+    try{
+      const all = await apiGet('/reports/customer-lifetime-value');
+      let rows = all || [];
+      if(clienteId){
+        rows = rows.filter(r => String(r.id_cliente) === String(clienteId));
+      }
+      document.getElementById('report-clv-table').innerHTML = renderCLVTable(rows);
+    }catch(e){
+      console.error('Erro ao obter CLV', e);
+      document.getElementById('report-clv-table').innerHTML = '<div class="p-2">Erro ao carregar dados</div>';
+    }
+  }
+
+  // Wire CLV button
+  document.getElementById('btn-report-clv').addEventListener('click', async ()=>{
+    const sel = document.getElementById('sel-clv-cliente');
+    const id = sel ? sel.value : '';
+    await reportCustomerLifetimeValue(id || null);
+    showSection('relatorios');
+  });
+
+  // Top Services report
+  function renderTopServicesTable(data){
+    if(!data || !data.length) return '<div class="p-2">Sem dados</div>';
+    const rows = data.map(r => `
+      <tr>
+        <td>${r.id_servico}</td>
+        <td>${r.descricao}</td>
+        <td style="text-align:right;">R$ ${parseFloat(r.receita || 0).toFixed(2)}</td>
+      </tr>
+    `).join('');
+    return `
+      <table class="table table-sm align-middle">
+        <thead><tr><th>ID</th><th>Descrição</th><th style="text-align:right;">Receita</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  async function reportTopServicesByRevenue(){
+    try{
+      const data = await apiGet('/reports/top-services-by-revenue');
+      document.getElementById('report-services-table').innerHTML = renderTopServicesTable(data || []);
+    }catch(e){
+      console.error('Erro ao obter Top Services', e);
+      document.getElementById('report-services-table').innerHTML = '<div class="p-2">Erro ao carregar dados</div>';
+    }
+  }
+
+  document.getElementById('btn-report-services').addEventListener('click', async ()=>{
+    await reportTopServicesByRevenue();
+    showSection('relatorios');
+  });
+
+  // Parts usage report
+  function renderPartsUsageTable(data){
+    if(!data || !data.length) return '<div class="p-2">Sem dados</div>';
+    const rows = data.map(r => `
+      <tr>
+        <td>${r.id_peca}</td>
+        <td>${r.sku}</td>
+        <td>${r.descricao}</td>
+        <td style="text-align:center;">${r.total_qtd}</td>
+        <td style="text-align:center;">${r.vezes_usada}</td>
+      </tr>
+    `).join('');
+    return `
+      <table class="table table-sm align-middle">
+        <thead><tr><th>ID</th><th>SKU</th><th>Descrição</th><th style="text-align:center;">Quantidade</th><th style="text-align:center;">Vezes (OS)</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  async function reportPartsUsageFrequency(){
+    try{
+      const data = await apiGet('/reports/parts-usage-frequency');
+      document.getElementById('report-parts-table').innerHTML = renderPartsUsageTable(data || []);
+    }catch(e){
+      console.error('Erro ao obter Parts Usage', e);
+      document.getElementById('report-parts-table').innerHTML = '<div class="p-2">Erro ao carregar dados</div>';
+    }
+  }
+
+  document.getElementById('btn-report-parts').addEventListener('click', async ()=>{
+    await reportPartsUsageFrequency();
+    showSection('relatorios');
+  });
+
   document.getElementById('busca-veiculos').addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       document.getElementById('btn-buscar-veiculos').click();
@@ -1356,6 +1470,17 @@
     const opt = v => `<option value="${v.id_veiculo}">${v.placa} — ${v.marca} ${v.modelo}</option>`;
     document.getElementById('sel-pd-veiculo').innerHTML = veiculos.map(opt).join('');
     document.getElementById('sel-hist-veiculo').innerHTML = veiculos.map(opt).join('');
+
+    // carregar clientes para o CLV
+    try{
+      const clientes = await apiGet('/clientes');
+      const sel = document.getElementById('sel-clv-cliente');
+      if(sel){
+        sel.innerHTML = `<option value="">Todos os clientes</option>` + clientes.map(c => `<option value="${c.id_cliente}">${c.nome_razao} (${c.cpf_cnpj})</option>`).join('');
+      }
+    }catch(e){
+      console.warn('Não foi possível carregar clientes para CLV', e);
+    }
   }
 
   async function consultaPecas(id_veiculo){
