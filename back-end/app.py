@@ -413,18 +413,38 @@ def relatorio_veiculo_completo():
 @app.get('/api/reports/customer-lifetime-value')
 def report_customer_lifetime_value():
     db = next(db_sess())
+
+    # Optional filter: return only a single customer if requested
+    cliente_id = request.args.get('id_cliente', type=int)
+
+    # Aggregate payments per cliente via a focused subquery (Veiculo -> OS -> Pagamento).
+    # This avoids accidental row duplication caused by joining multiple 1-to-many relationships
+    # in a single query and keeps the aggregation scan tight.
+    pagos_por_cliente = (
+        db.query(
+            Veiculo.id_cliente.label('id_cliente'),
+            func.sum(Pagamento.valor).label('total_pago')
+        )
+        .join(OS, OS.id_veiculo == Veiculo.id_veiculo)
+        .join(Pagamento, Pagamento.id_os == OS.id_os)
+        .group_by(Veiculo.id_cliente)
+        .subquery()
+    )
+
     q = (
         db.query(
             Cliente.id_cliente,
             Cliente.nome_razao,
-            func.coalesce(func.sum(Pagamento.valor), 0).label('total_pago')
+            func.coalesce(pagos_por_cliente.c.total_pago, 0).label('total_pago')
         )
-        .outerjoin(Veiculo, Veiculo.id_cliente == Cliente.id_cliente)
-        .outerjoin(OS, OS.id_veiculo == Veiculo.id_veiculo)
-        .outerjoin(Pagamento, Pagamento.id_os == OS.id_os)
-        .group_by(Cliente.id_cliente, Cliente.nome_razao)
-        .order_by(func.coalesce(func.sum(Pagamento.valor), 0).desc())
+        .outerjoin(pagos_por_cliente, pagos_por_cliente.c.id_cliente == Cliente.id_cliente)
     )
+
+    if cliente_id:
+        q = q.filter(Cliente.id_cliente == cliente_id)
+
+    q = q.order_by(func.coalesce(pagos_por_cliente.c.total_pago, 0).desc())
+
     rows = q.all()
     return jsonify([{
         'id_cliente': r.id_cliente,
